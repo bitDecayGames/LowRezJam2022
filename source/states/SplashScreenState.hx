@@ -1,15 +1,13 @@
 package states;
 
+import flixel.system.FlxAssets.FlxGraphicAsset;
 import config.Configure;
-import flixel.FlxG;
+import haxefmod.flixel.FmodFlxUtilities;
+import flixel.tweens.misc.VarTween;
+import flixel.tweens.FlxTween;
 import flixel.FlxSprite;
 import flixel.FlxState;
-import flixel.system.FlxAssets.FlxGraphicAsset;
-import flixel.tweens.FlxTween;
-import flixel.tweens.misc.VarTween;
-import haxefmod.flixel.FmodFlxUtilities;
-
-using extensions.FlxStateExt;
+import flixel.FlxG;
 
 class SplashScreenState extends FlxState {
 	public static inline var PLAY_ANIMATION = "play";
@@ -20,121 +18,80 @@ class SplashScreenState extends FlxState {
 	var timer = 0.0;
 	var splashDuration = 3.0;
 
-	var currentTween:FlxTween = null;
-	var splashesOver:Bool = false;
-	var fadingOut:Bool = false;
-
 	override public function create():Void {
 		super.create();
+		// FmodManager.PlaySong(FmodSongs.LetsGetWiggly);
+
+		// To use the system cursor:
+		FlxG.mouse.useSystemCursor = true;
 
 		// List splash screen image paths here
 		loadSplashImages([
-			new SplashImage(AssetPaths.bitdecaygamesinverted__png),
-			new SplashImage(AssetPaths.ld_logo__png)
+			new SplashImage(AssetPaths.splash_bitSplash__png, 64, 64, 0, 10),
+			new SplashImage(AssetPaths.splash_jamSplash__png, 64, 64, 11, 1)
 		]);
 
 		timer = splashDuration;
-		currentTween = getFadeIn(index);
-	}
+		fadeIn(index);
 
-	// A function that returns if the current splash should be skipped or not
-	// Customize this to check whatever we want (controller, mouse, etc)
-	private function checkForSkip():Bool {
-		var skip = false;
-		if (Configure.config.menus.keyboardNavigation) {
-			skip = skip || FlxG.keys.justPressed.SPACE || FlxG.keys.justPressed.ENTER;
-		}
-		if (Configure.config.menus.controllerNavigation) {
-			var gamepad = FlxG.gamepads.lastActive;
-			if (gamepad != null) {
-				skip = skip || gamepad.justPressed.A;
-			}
-		}
-		return skip || FlxG.mouse.justPressed;
+		Configure.initAnalytics();
 	}
 
 	private function loadSplashImages(splashes:Array<SplashImage>) {
 		for (s in splashes) {
-			add(s);
-			s.alpha = 0;
-			splashImages.push(s);
+			add(s.sprite);
+			s.sprite.alpha = 0;
+			splashImages.push(s.sprite);
 		}
 	}
 
 	override public function update(elapsed:Float):Void {
 		super.update(elapsed);
 		timer -= elapsed;
-		var playerSkipped = !fadingOut && !splashesOver && Configure.config.splashScreens.allowClickToSkip && checkForSkip();
-		if (timer < 0 || playerSkipped) {
+		if (timer < 0)
 			nextSplash();
-		}
 	}
 
-	private function getFadeIn(index:Int):VarTween {
+	private function fadeIn(index:Int):VarTween {
 		var splash = splashImages[index];
-		var fadeInTween = FlxTween.tween(splash, {alpha: 1}, 1);
-		fadeInTween.onStart = (t) -> {
-			fadingOut = false;
-		};
+		var fadeInTween = FlxTween.tween(splash, { alpha: 1 }, 1);
 		if (splash.animation.getByName(PLAY_ANIMATION) != null) {
 			fadeInTween.onComplete = (t) -> splash.animation.play(PLAY_ANIMATION);
 			splash.animation.callback = (name, frameNumber, frameIndex) -> {
-				// Can add sfx or other things here
-			};
+				if (frameNumber == 1 || frameNumber == 3) {
+					// FmodManager.PlaySoundOneShot(FmodSFX.SplashBite);
+				}
+			}
 		}
 		return fadeInTween;
 	}
 
 	public function nextSplash() {
-		if (splashesOver) {
-			// nothing more to do
-			return;
-		}
-
-		if (currentTween != null && !currentTween.finished) {
-			currentTween.cancel();
-		}
-
-		fadingOut = true;
-		currentTween = FlxTween.tween(splashImages[index], {alpha: 0}, 0.5);
+		var tween:VarTween = FlxTween.tween(splashImages[index], { alpha: 0 }, 0.5);
 
 		index += 1;
 		timer = splashDuration;
 
 		if (index < splashImages.length) {
-			currentTween.then(getFadeIn(index));
+			tween.then(fadeIn(index));
 		} else {
-			splashesOver = true;
-			currentTween.onComplete = (t) -> {
+			tween.onComplete = (t) -> {
 				FmodFlxUtilities.TransitionToState(new MainMenuState());
 			};
 		}
 	}
-
-	override public function onFocusLost() {
-		super.onFocusLost();
-		this.handleFocusLost();
-	}
-
-	override public function onFocus() {
-		super.onFocus();
-		this.handleFocus();
-	}
 }
 
-class SplashImage extends FlxSprite {
+class SplashImage {
+	public var sprite:FlxSprite;
+
 	public function new(gfx:FlxGraphicAsset, width:Int = 0, height:Int = 0, startFrame:Int = 0, endFrame:Int = -1, rate:Int = 10) {
-		super(gfx);
-		var animated = width != 0 && height != 0;
-		loadGraphic(gfx, animated, width, height);
-		animation.add(SplashScreenState.PLAY_ANIMATION, [for (i in startFrame...endFrame) i], rate, false);
+		sprite = new FlxSprite();
+		sprite.loadGraphic(gfx, true, width, height);
+		sprite.animation.add(SplashScreenState.PLAY_ANIMATION, [for (i in startFrame...endFrame) i], rate, false);
+		sprite.scale.x = FlxG.width / sprite.frameWidth;
+		sprite.scale.y = FlxG.height / sprite.frameHeight;
 
-		if (animated) {
-			scale.set(FlxG.width / width, FlxG.height / height);
-		} else {
-			scale.set(FlxG.width / frameWidth, FlxG.height / frameHeight);
-		}
-
-		updateHitbox();
+		sprite.updateHitbox();
 	}
 }
