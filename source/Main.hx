@@ -1,5 +1,6 @@
 package;
 
+import flixel.addons.plugin.FlxMouseControl;
 import achievements.Achievements;
 import helpers.Storage;
 import states.SplashScreenState;
@@ -16,6 +17,7 @@ import misc.FlxTextFactory;
 import openfl.display.Sprite;
 #if play
 import states.PlayState;
+import states.ScoopState;
 #end
 
 class Main extends Sprite {
@@ -28,7 +30,7 @@ class Main extends Sprite {
 
 		var startingState:Class<FlxState> = SplashScreenState;
 		#if play
-		startingState = PlayState;
+		startingState = ScoopState;
 		#else
 		if (Macros.isDefined("SKIP_SPLASH")) {
 			startingState = MainMenuState;
