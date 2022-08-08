@@ -16,8 +16,7 @@ import flixel.util.FlxColor;
 import misc.FlxTextFactory;
 import openfl.display.Sprite;
 #if play
-import states.PlayState;
-import states.ScoopState;
+import states.ChangeSortState;
 #end
 
 class Main extends Sprite {
@@ -30,7 +29,7 @@ class Main extends Sprite {
 
 		var startingState:Class<FlxState> = SplashScreenState;
 		#if play
-		startingState = ScoopState;
+		startingState = ChangeSortState;
 		#else
 		if (Macros.isDefined("SKIP_SPLASH")) {
 			startingState = MainMenuState;
