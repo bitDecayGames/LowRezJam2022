@@ -33,6 +33,31 @@ class TruckState extends FlxTransitionableState {
 	// The valid spots customers may go to start an order
 	var counterSpace = FlxRect.get(6, 39, 50-13, 7);
 
+	var lineCoords = [
+		0 => 5,
+		1 => 15,
+		2 => 25,
+		3 => 35,
+		4 => 45,
+	];
+
+	var lineBaseY = 42;
+	var customerSpacing = 3;
+	var lineCustomers:Map<Int, Array<Customer>> = [
+		0 => [],
+		1 => [],
+		2 => [],
+		3 => [],
+		4 => [],
+	];
+	var lineDepths:Map<Int, Int> = [
+		0 => 0,
+		1 => 0,
+		2 => 0,
+		3 => 0,
+		4 => 0,
+	];
+
 	public function new() {
 		super();
 
@@ -58,30 +83,83 @@ class TruckState extends FlxTransitionableState {
 		add(truck);
 
 		customerTimer = new FlxTimer();
-		customerTimer.start(5, spawnCustomer, 0);
+		customerTimer.start(1, spawnCustomer, 0);
 	}
 
 	override public function update(elapsed:Float) {
 		super.update(elapsed);
 
+		for (c in customers) {
+			if (c.linePosition > 0) {
+					if (c.settled && lineCustomers[c.lineNum][c.linePosition - 1] == null) {
+					lineCustomers[c.lineNum][c.linePosition] = null;
+					c.linePosition--;
+					lineCustomers[c.lineNum][c.linePosition] = c;
+					moveCustomerToPosition(c);
+				}
+			}
+		}
+
 		customers.sort(FlxSort.byY);
 	}
 
 	function spawnCustomer(timer:FlxTimer) {
+		var custLine = FlxG.random.int(0, 4);
+		custLine = 2;
 		var cust = new Customer();
+		cust.lineNum = custLine;
+		cust.linePosition = lineDepths[custLine];
+		cust.spacingVariance = FlxG.random.int(0, 2) - 1;
+
 		cust.enableMouseClicks(true, true);
 		cust.mousePressedCallback = function(spr:FlxExtendedSprite, x:Int, y:Int) {
+			if (!cust.settled) {
+				// only handle clicks if they are settled
+				return;
+			}
+
 			// TODO: Need a transition here of some sort (swipe out?)
-			var scoopState = new ScoopState(this);
-			openSubState(scoopState);
+			// var scoopState = new ScoopState(this);
+			// openSubState(scoopState);
+
+			// TODO: This has a bug where the indices get jacked and customers will move UP before getting into the proper position
+			// in line. This has to be because of how we are managing our arrays
+			lineCustomers[cust.lineNum][cust.linePosition] = null;
+			lineDepths[custLine]--;
+			// TODO: Real customer exit
+			var exitXCoord = cust.lineNum <= 2 ? -20 : FlxG.width;
+			if (cust.lineNum == 2 && FlxG.random.bool()) {
+				exitXCoord = FlxG.width;
+			}
+			FlxTween.linearPath(cust, [FlxPoint.get(cust.x, cust.y), FlxPoint.get(exitXCoord, cust.y)], 40, false, {
+				onComplete: function (t) {
+					cust.kill();
+				}
+			});
 		}
 
-		// TODO: Have a pseudo line for customers to get into. Customers should scoot up once people in front leave
-		var target = FlxPoint.get(FlxG.random.float(counterSpace.left, counterSpace.right), FlxG.random.float(counterSpace.top, counterSpace.bottom));
+		moveCustomerToPosition(cust);
 
-		FlxTween.linearPath(cust, [FlxPoint.get(cust.x, cust.y), FlxPoint.get(target.x, cust.y), FlxPoint.get(target.x, target.y)]);
+		if (lineDepths[custLine] < cust.linePosition) {
+			lineCustomers[custLine].push(cust);
+		} else {
+			lineCustomers[custLine].insert(cust.linePosition, cust);
+		}
+		lineDepths[custLine]++;
 
 		customers.add(cust);
+	}
+
+	function moveCustomerToPosition(cust:Customer) {
+		cust.settled = false;
+		var variance = FlxG.random.int(0, 4) - 2;
+		var target = FlxPoint.get(lineCoords[cust.lineNum] + variance, lineBaseY - cust.linePosition * customerSpacing + cust.spacingVariance);
+
+		FlxTween.linearPath(cust, [FlxPoint.get(cust.x, cust.y), FlxPoint.get(target.x, cust.y), FlxPoint.get(target.x, target.y)], 40, false, {
+			onComplete: function (t) {
+				cust.settled = true;
+			}
+		});
 	}
 
 	override public function onFocusLost() {
