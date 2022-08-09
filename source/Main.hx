@@ -16,8 +16,10 @@ import flixel.util.FlxColor;
 import misc.FlxTextFactory;
 import openfl.display.Sprite;
 #if play
-import states.PlayState;
+import states.ChangeSortState;
 import states.ScoopState;
+import states.ConeStackState;
+import states.TruckState;
 #end
 
 class Main extends Sprite {
@@ -30,12 +32,18 @@ class Main extends Sprite {
 
 		var startingState:Class<FlxState> = SplashScreenState;
 		#if play
-		startingState = ScoopState;
+		startingState = TruckState;
 		#else
 		if (Macros.isDefined("SKIP_SPLASH")) {
 			startingState = MainMenuState;
 		}
 		#end
+
+
+		// Set up basic transitions. To override these see `transOut` and `transIn` on any FlxTransitionable states
+		FlxTransitionableState.defaultTransIn = new TransitionData(FADE, FlxColor.BLACK, 2);
+		FlxTransitionableState.defaultTransOut = new TransitionData(FADE, FlxColor.BLACK, 2);
+
 		addChild(new FlxGame(64, 64, startingState, 1, 60, 60, true, false));
 
 		FlxG.fixedTimestep = false;
@@ -45,16 +53,14 @@ class Main extends Sprite {
 		FlxG.sound.volumeUpKeys = null;
 		FlxG.sound.volumeDownKeys = null;
 
-		// Don't use the flixel cursor
-		FlxG.mouse.useSystemCursor = true;
-
 		#if debug
 		FlxG.autoPause = false;
+		#if hide_debugger
+		FlxG.debugger.visible = false;
+		#end
 		#end
 
-		// Set up basic transitions. To override these see `transOut` and `transIn` on any FlxTransitionable states
-		FlxTransitionableState.defaultTransIn = new TransitionData(FADE, FlxColor.BLACK, 0.35);
-		FlxTransitionableState.defaultTransOut = new TransitionData(FADE, FlxColor.BLACK, 0.35);
+		FlxG.mouse.useSystemCursor = Configure.config.mouse.useSystemCursor;
 
 		FlxTextFactory.defaultFont = AssetPaths.Brain_Slab_8__ttf;
 	}

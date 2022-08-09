@@ -1,5 +1,7 @@
 package states;
 
+import flixel.FlxSubState;
+import flixel.FlxState;
 import entities.IceCreamFlavor;
 import flixel.util.FlxSpriteUtil;
 import flixel.tweens.FlxEase;
@@ -16,7 +18,7 @@ import flixel.FlxG;
 
 using extensions.FlxStateExt;
 
-class ConeStackState extends FlxTransitionableState {
+class ConeStackState extends FlxSubState {
 	var flavor:IceCreamFlavor;
 
 	var cone:FlxSprite;
@@ -26,10 +28,13 @@ class ConeStackState extends FlxTransitionableState {
 
 	var triggered = false;
 
-	public function new(flavor:IceCreamFlavor) {
+	var returnState:FlxState;
+
+	public function new(returnState:FlxState, flavor:IceCreamFlavor) {
 		super();
 
 		this.flavor = flavor;
+		this.returnState = returnState;
 	}
 
 	override public function create() {
@@ -86,14 +91,15 @@ class ConeStackState extends FlxTransitionableState {
 		FlxG.collide(cone, iceCreamBall, handleFinish);
 
 		if (iceCreamBall.y  > FlxG.height) {
-			coneTween.cancel();
 			trace("you failed");
+			close();
 		}
 	}
 
 	function handleFinish(c:FlxSprite, i:FlxSprite) {
 		coneTween.cancel();
 		trace("nice plopper");
+		close();
 	}
 
 	override public function onFocusLost() {
