@@ -1,5 +1,8 @@
 package states;
 
+import flixel.FlxSubState;
+import flixel.FlxState;
+import entities.ScoopCursor;
 import entities.IceCreamFlavor;
 import flixel.addons.plugin.FlxMouseControl;
 import flixel.addons.display.FlxExtendedSprite;
@@ -13,12 +16,20 @@ import flixel.FlxG;
 
 using extensions.FlxStateExt;
 
-class ScoopState extends FlxTransitionableState {
+class ScoopState extends FlxSubState {
 	var player:FlxSprite;
 
 	var chocolate:FlxExtendedSprite;
 	var vanilla:FlxExtendedSprite;
 	var strawberry:FlxExtendedSprite;
+
+	var returnState:FlxState;
+
+	public function new(returnState:FlxState) {
+		super();
+
+		this.returnState = returnState;
+	}
 
 	override public function create() {
 		super.create();
@@ -52,13 +63,17 @@ class ScoopState extends FlxTransitionableState {
 		strawberry.enableMouseClicks(false, true);
 		strawberry.mousePressedCallback = onIceCreamClick(IceCreamFlavor.Strawberry);
 		add(strawberry);
+
+		// Add cursor last so it is on top
+		add(new ScoopCursor());
 	}
 
 	private function onIceCreamClick(key:IceCreamFlavor):FlxExtendedSprite->Int->Int->Void {
 		return function(spr:FlxExtendedSprite, x:Int, y:Int) {
 			trace('Ya dun clikd ${key}');
 			// TODO: Need a transition here of some sort (swipe out?)
-			FlxG.switchState(new ConeStackState(key));
+			close();
+			returnState.openSubState(new ConeStackState(returnState, key));
 		}
 	}
 

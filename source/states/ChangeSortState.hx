@@ -96,10 +96,6 @@ class ChangeSortState extends FlxTransitionableState {
 		coin.draggable = true;
 		coin.mouseStartDragCallback = coinDrag;
 		coin.mouseStopDragCallback = stopCoinDrag(type);
-
-
-		trace('coinX: ${coin.x}, coinY: ${coin.y}');
-		trace("");
 		coins.push(coin);
 		add(coin);
 	}
@@ -122,6 +118,7 @@ class ChangeSortState extends FlxTransitionableState {
 					FlxG.switchState(new MainMenuState());
 				}
 			} else {
+			// } else if (c.y > ) {
 				c.draggable = false;
 				c.alpha = 0.5;
 				FlxTween.linearPath(c, [
