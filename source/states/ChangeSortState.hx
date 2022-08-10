@@ -1,18 +1,15 @@
 package states;
 
+import flixel.FlxObject;
 import flixel.FlxSubState;
 import flixel.FlxState;
 import flixel.math.FlxRect;
-import entities.IceCreamFlavor;
-import flixel.util.FlxSpriteUtil;
 import flixel.tweens.FlxEase;
 import flixel.math.FlxPoint;
 import flixel.tweens.FlxTween;
 import flixel.addons.plugin.FlxMouseControl;
 import flixel.addons.display.FlxExtendedSprite;
 import flixel.util.FlxColor;
-import achievements.Achievements;
-import flixel.addons.transition.FlxTransitionableState;
 
 import flixel.FlxSprite;
 import flixel.FlxG;
@@ -23,13 +20,20 @@ class ChangeSortState extends FlxSubState {
 
 	var coinsToSpawn:Int = 4;
 
-	var bins:Map<Int, FlxSprite> = [];
+	var bins:Map<Int, FlxObject> = [];
 
-	var binXs = [
-		0 => 0,
-		1 => Std.int(FlxG.width * .25),
-		2 => Std.int(FlxG.width * .5),
-		3 => Std.int(FlxG.width * .75),
+	var binLocations = [
+		0 => FlxPoint.get(2, 44),
+		1 => FlxPoint.get(18, 44),
+		2 => FlxPoint.get(33, 44),
+		3 => FlxPoint.get(48, 44),
+	];
+
+	var binSizes = [
+		0 => FlxPoint.get(14, 19),
+		1 => FlxPoint.get(13, 19),
+		2 => FlxPoint.get(13, 19),
+		3 => FlxPoint.get(14, 19),
 	];
 
 	var coins:Array<FlxSprite> = [];
@@ -81,16 +85,19 @@ class ChangeSortState extends FlxSubState {
 
 
 	function makeBin(type:Int) {
-		var bin = new FlxSprite(coinColors[type]);
-		bin.x = binXs[type];
-		bin.y = FlxG.height - bin.height;
-		bin.color = FlxColor.GRAY.getDarkened();
+		var bin = new FlxObject(
+			binLocations[type].x,
+			binLocations[type].y,
+			binSizes[type].x,
+			binSizes[type].y
+		);
 		add(bin);
 
 		bins[type] = bin;
 	}
 
 	function makeCoin() {
+		// TODO: Coins should scatter initially
 		var type = FlxG.random.int(0, 3);
 		trace("spawning coin of type: " + type);
 
@@ -126,6 +133,7 @@ class ChangeSortState extends FlxSubState {
 					close();
 				}
 			} else {
+				// TODO: Make this only reject coins if they place them in the wrong bin
 			// } else if (c.y > ) {
 				c.draggable = false;
 				c.alpha = 0.5;

@@ -67,6 +67,7 @@ class ConeStackState extends FlxSubState {
 			type: FlxTweenType.PINGPONG,
 			ease: FlxEase.sineInOut,
 		});
+		FlxTween.globalManager.update(0);
 
 		iceCreamBall = new IceCreamBall(flavor);
 		add(iceCreamBall);
