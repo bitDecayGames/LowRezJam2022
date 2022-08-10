@@ -29,6 +29,7 @@ class ScoopState extends FlxSubState {
 		super();
 
 		this.returnState = returnState;
+		bgColor = FlxColor.fromRGB(30, 30, 30, 128);
 	}
 
 	override public function create() {
@@ -40,26 +41,26 @@ class ScoopState extends FlxSubState {
 
 		FlxG.camera.pixelPerfectRender = true;
 
-		chocolate = new FlxExtendedSprite(10, 10);
-		chocolate.makeGraphic(10, 10, FlxColor.BROWN);
-		chocolate.x = 5;
-		chocolate.y = FlxG.height - 10;
+		chocolate = new FlxExtendedSprite(10, 10, AssetPaths.chocolate_bin__png);
+		// chocolate.makeGraphic(10, 10, FlxColor.BROWN);
+		chocolate.x = 0;
+		chocolate.y = FlxG.height - chocolate.height;
 		chocolate.enableMouseClicks(false, true);
 		chocolate.mousePressedCallback = onIceCreamClick(IceCreamFlavor.Chocolate);
 		add(chocolate);
 
-		vanilla = new FlxExtendedSprite(10, 10);
-		vanilla.makeGraphic(10, 10, FlxColor.WHITE);
+		vanilla = new FlxExtendedSprite(10, 10, AssetPaths.vanilla_bin__png);
+		// vanilla.makeGraphic(10, 10, FlxColor.WHITE);
 		vanilla.x = chocolate.x + chocolate.width + 5;
-		vanilla.y = FlxG.height - 10;
+		vanilla.y = FlxG.height - vanilla.height;
 		vanilla.enableMouseClicks(false, true);
 		vanilla.mousePressedCallback = onIceCreamClick(IceCreamFlavor.Vanilla);
 		add(vanilla);
 
-		strawberry = new FlxExtendedSprite(10, 10);
-		strawberry.makeGraphic(10, 10, FlxColor.PINK.getDarkened());
+		strawberry = new FlxExtendedSprite(10, 10, AssetPaths.strawberry_bin__png);
+		// strawberry.makeGraphic(10, 10, FlxColor.PINK.getDarkened());
 		strawberry.x = vanilla.x + vanilla.width + 5;
-		strawberry.y = FlxG.height - 10;
+		strawberry.y = FlxG.height - strawberry.height;
 		strawberry.enableMouseClicks(false, true);
 		strawberry.mousePressedCallback = onIceCreamClick(IceCreamFlavor.Strawberry);
 		add(strawberry);

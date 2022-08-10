@@ -1,5 +1,6 @@
 package states;
 
+import flixel.FlxSubState;
 import flixel.util.FlxSort;
 import entities.Customer;
 import flixel.util.FlxTimer;
@@ -65,7 +66,10 @@ class TruckState extends FlxTransitionableState {
 		// or update while those are being played
 		// .... or do we? probably do, actually
 		// persistentUpdate = false;
+
+		#if isolate_games
 		persistentDraw = false;
+		#end
 	}
 
 	override public function create() {
@@ -83,7 +87,7 @@ class TruckState extends FlxTransitionableState {
 		add(truck);
 
 		customerTimer = new FlxTimer();
-		customerTimer.start(1, spawnCustomer, 0);
+		customerTimer.start(5, spawnCustomer, 0);
 	}
 
 	override public function update(elapsed:Float) {
@@ -119,8 +123,8 @@ class TruckState extends FlxTransitionableState {
 			}
 
 			// TODO: Need a transition here of some sort (swipe out?)
-			// var scoopState = new ScoopState(this);
-			// openSubState(scoopState);
+			var scoopState = new ScoopState(this);
+			openSubState(scoopState);
 
 			// TODO: This has a bug where the indices get jacked and customers will move UP before getting into the proper position
 			// in line. This has to be because of how we are managing our arrays

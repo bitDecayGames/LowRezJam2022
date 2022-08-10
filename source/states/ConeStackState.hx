@@ -1,5 +1,7 @@
 package states;
 
+import entities.games.conestack.IceCreamBall;
+import haxe.Timer;
 import flixel.FlxSubState;
 import flixel.FlxState;
 import entities.IceCreamFlavor;
@@ -23,18 +25,27 @@ class ConeStackState extends FlxSubState {
 
 	var cone:FlxSprite;
 	var scoop:FlxSprite;
-	var iceCreamBall:FlxSprite;
+	var iceCreamBall:IceCreamBall;
 	var coneTween:FlxTween;
 
-	var triggered = false;
+	var dropTriggered = false;
+	var plopOccurred = false;
 
 	var returnState:FlxState;
+
+	var splats = [
+		IceCreamFlavor.Chocolate => AssetPaths.chocolate_plop__png,
+		IceCreamFlavor.Vanilla => AssetPaths.vanilla_plop__png,
+		IceCreamFlavor.Strawberry => AssetPaths.strawberry_plop__png,
+	];
 
 	public function new(returnState:FlxState, flavor:IceCreamFlavor) {
 		super();
 
 		this.flavor = flavor;
 		this.returnState = returnState;
+		bgColor = FlxColor.fromRGB(30, 30, 30, 128);
+
 	}
 
 	override public function create() {
@@ -46,60 +57,72 @@ class ConeStackState extends FlxSubState {
 
 		FlxG.camera.pixelPerfectRender = true;
 
-		cone = new FlxSprite(5, 15);
-		cone.x = cone.width;
-		cone.y = FlxG.height - cone.height - 5;
-		cone.makeGraphic(5, 15, FlxColor.BROWN.getLightened());
+		cone = new FlxSprite(5, 15, AssetPaths.cake_cone__png);
 		add(cone);
 
 		coneTween = FlxTween.linearPath(cone, [
-			new FlxPoint(0, FlxG.height - cone.height - 5),
-			new FlxPoint(FlxG.width-cone.width, FlxG.height - cone.height - 5)
+			new FlxPoint(0, FlxG.height - cone.height),
+			new FlxPoint(FlxG.width-cone.width+1, FlxG.height - cone.height)
 		], 1, true, {
 			type: FlxTweenType.PINGPONG,
 			ease: FlxEase.sineInOut,
 		});
 
-		iceCreamBall = new FlxSprite(5, 5);
-		iceCreamBall.makeGraphic(5, 5, switch (flavor) {
-			case Chocolate:
-				FlxColor.BROWN;
-			case Vanilla:
-				FlxColor.WHITE;
-			case Strawberry:
-				FlxColor.PINK.getDarkened();
-		});
-		iceCreamBall.x = FlxG.width / 2 - 5;
-		iceCreamBall.y = 5;
+		iceCreamBall = new IceCreamBall(flavor);
 		add(iceCreamBall);
 
-		scoop = new FlxSprite(20, 5);
-		scoop.makeGraphic(20, 5, FlxColor.GRAY);
-		scoop.x = FlxG.width / 2;
-		scoop.y = 5;
+		scoop = new FlxSprite();
+		scoop.loadGraphic(AssetPaths.big_scoop_1__png, true, 43, 22);
+		scoop.animation.add('idle', [0]);
+		scoop.animation.add('flip', [1, 2], false);
+		scoop.animation.play('idle');
+		scoop.x = FlxG.width - scoop.width;
+		scoop.y = 3;
 		add(scoop);
+
+		// ice cream needs to align with the scoop
+		iceCreamBall.x = scoop.x + iceCreamBall.offset.x;
+		iceCreamBall.y = scoop.y + iceCreamBall.offset.y - 3;
 	}
 
 	override public function update(elapsed:Float) {
 		super.update(elapsed);
 
-		if (!triggered && FlxG.mouse.justPressed) {
-			triggered = true;
+		if (!dropTriggered && FlxG.mouse.justPressed) {
+			dropTriggered = true;
+			scoop.animation.play('flip');
 			iceCreamBall.acceleration.y = 120;
 		}
 
-		FlxG.collide(cone, iceCreamBall, handleFinish);
+		if (!iceCreamBall.plopped) {
+			FlxG.collide(cone, iceCreamBall, handleFinish);
+		}
 
 		if (iceCreamBall.y  > FlxG.height) {
 			trace("you failed");
 			close();
+			returnState.openSubState(new ChangeSortState(returnState, 2));
+		}
+
+		if (plopOccurred && !iceCreamBall.plopped) {
+			coneTween.cancel();
+
+			iceCreamBall.velocity.set(0, 0);
+			iceCreamBall.acceleration.set(0, 0);
+			iceCreamBall.plop(cone);
+
+			trace("nice plopper");
+
+			// TODO: animations and rating, etc, before closing. Make this cleaner
+			Timer.delay(()-> {
+				close();
+				returnState.openSubState(new ChangeSortState(returnState, 4));
+			}, 2000);
 		}
 	}
 
-	function handleFinish(c:FlxSprite, i:FlxSprite) {
-		coneTween.cancel();
-		trace("nice plopper");
-		close();
+	function handleFinish(c:FlxSprite, i:IceCreamBall) {
+		plopOccurred = true;
 	}
 
 	override public function onFocusLost() {

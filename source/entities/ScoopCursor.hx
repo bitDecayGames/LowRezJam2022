@@ -7,10 +7,12 @@ import flixel.FlxSprite;
 // Follows the mouse position. Better than a custom cursor as this follows the proper pixel-perfect position
 // and asset scale
 class ScoopCursor extends FlxSprite {
+	private var mouseOffset = FlxPoint.get(-4, -13);
+
 	private var tmp = FlxPoint.get();
 
 	public function new() {
-		super(AssetPaths.HaxeFlixelLogo__png);
+		super(AssetPaths.scoop_icon__png);
 	}
 
 	override public function update(delta:Float) {
@@ -18,6 +20,7 @@ class ScoopCursor extends FlxSprite {
 
 		FlxG.mouse.getPosition(tmp);
 
+		tmp.addPoint(mouseOffset);
 		x = tmp.x;
 		y = tmp.y;
 	}

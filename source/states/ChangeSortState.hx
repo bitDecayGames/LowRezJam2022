@@ -1,5 +1,7 @@
 package states;
 
+import flixel.FlxSubState;
+import flixel.FlxState;
 import flixel.math.FlxRect;
 import entities.IceCreamFlavor;
 import flixel.util.FlxSpriteUtil;
@@ -17,7 +19,7 @@ import flixel.FlxG;
 
 using extensions.FlxStateExt;
 
-class ChangeSortState extends FlxTransitionableState {
+class ChangeSortState extends FlxSubState {
 
 	var coinsToSpawn:Int = 4;
 
@@ -35,23 +37,24 @@ class ChangeSortState extends FlxTransitionableState {
 	var changeArea = FlxRect.get(0, 0, FlxG.width, FlxG.height * .75);
 
 	var coinColors = [
-		0 => FlxColor.RED,
-		1 => FlxColor.YELLOW,
-		2 => FlxColor.BLUE,
-		3 => FlxColor.GRAY,
+		0 => AssetPaths.penny__png,
+		1 => AssetPaths.nickel__png,
+		2 => AssetPaths.dime__png,
+		3 => AssetPaths.quarter__png,
 	];
 
 	var coinTypes = 4;
 
 	var coinSizes = [
-		0 => 10,
-		1 => 8,
-		2 => 6,
-		3 => 5,
+		0 => 8,
+		1 => 10,
+		2 => 7,
+		3 => 14,
 	];
 
-	public function new() {
+	public function new(returnState:FlxState, coinCount:Int) {
 		super();
+		coinsToSpawn = coinCount;
 	}
 
 	override public function create() {
@@ -62,6 +65,8 @@ class ChangeSortState extends FlxTransitionableState {
 		}
 
 		FlxG.camera.pixelPerfectRender = true;
+
+		add(new FlxSprite(AssetPaths.register_bg__png));
 
 
 		makeBin(0);
@@ -76,10 +81,10 @@ class ChangeSortState extends FlxTransitionableState {
 
 
 	function makeBin(type:Int) {
-		var bin = new FlxSprite();
-		bin.makeGraphic(Std.int(FlxG.width / coinTypes), Std.int(FlxG.height / 4), coinColors[type]);
+		var bin = new FlxSprite(coinColors[type]);
 		bin.x = binXs[type];
 		bin.y = FlxG.height - bin.height;
+		bin.color = FlxColor.GRAY.getDarkened();
 		add(bin);
 
 		bins[type] = bin;
@@ -90,8 +95,11 @@ class ChangeSortState extends FlxTransitionableState {
 		trace("spawning coin of type: " + type);
 
 		var size = Std.int(coinSizes[type]);
-		var coin = new FlxExtendedSprite(FlxG.random.int(0, Std.int(FlxG.width - size)), FlxG.random.int(0, Std.int(FlxG.height * .75 - size)));
-		coin.makeGraphic(Std.int(coinSizes[type]), Std.int(coinSizes[type]), coinColors[type].getDarkened());
+		var coin = new FlxExtendedSprite(
+			FlxG.random.int(0, Std.int(FlxG.width - size)),
+			FlxG.random.int(0, Std.int(FlxG.height * .75 - size)),
+			coinColors[type]
+		);
 		coin.enableMouseClicks(false, true);
 		coin.draggable = true;
 		coin.mouseStartDragCallback = coinDrag;
@@ -115,7 +123,7 @@ class ChangeSortState extends FlxTransitionableState {
 				coins.remove(c);
 
 				if (coins.length == 0) {
-					FlxG.switchState(new MainMenuState());
+					close();
 				}
 			} else {
 			// } else if (c.y > ) {
