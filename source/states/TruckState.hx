@@ -123,9 +123,7 @@ class TruckState extends FlxTransitionableState {
 			activeCustomer = cust;
 
 			// TODO: Need a transition here of some sort (swipe out?)
-			var scoopState:FlxSubState = new ScoopState(this);
-			scoopState = new PopsiclePickerState(this);
-			openSubState(scoopState);
+			openSubState(FlxG.random.bool() ?new ScoopState(this) : new PopsiclePickerState(this));
 
 			// TODO: This has a bug where the indices get jacked and customers will move UP before getting into the proper position
 			// in line. This has to be because of how we are managing our arrays

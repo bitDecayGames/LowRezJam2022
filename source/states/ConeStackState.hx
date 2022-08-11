@@ -24,6 +24,7 @@ class ConeStackState extends FlxSubState {
 	var flavor:IceCreamFlavor;
 
 	var cone:FlxSprite;
+	var hand:FlxSprite;
 	var scoop:FlxSprite;
 	var iceCreamBall:IceCreamBall;
 	var coneTween:FlxTween;
@@ -33,11 +34,7 @@ class ConeStackState extends FlxSubState {
 
 	var returnState:TruckState;
 
-	var splats = [
-		IceCreamFlavor.Chocolate => AssetPaths.chocolate_plop__png,
-		IceCreamFlavor.Vanilla => AssetPaths.vanilla_plop__png,
-		IceCreamFlavor.Strawberry => AssetPaths.strawberry_plop__png,
-	];
+	var attachPointX = -1.0;
 
 	public function new(returnState:TruckState, flavor:IceCreamFlavor) {
 		super();
@@ -45,7 +42,6 @@ class ConeStackState extends FlxSubState {
 		this.flavor = flavor;
 		this.returnState = returnState;
 		bgColor = FlxColor.fromRGB(30, 30, 30, 128);
-
 	}
 
 	override public function create() {
@@ -53,33 +49,43 @@ class ConeStackState extends FlxSubState {
 
 		FlxG.camera.pixelPerfectRender = true;
 
+		hand = new FlxSprite(AssetPaths.kidsHand__png);
+		hand.setPosition(FlxG.width - hand.width + 4, FlxG.height - hand.height - 2);
+		add(hand);
+
 		cone = new FlxSprite(5, 15, AssetPaths.cake_cone__png);
+		cone.setPosition(0, FlxG.height - cone.height);
 		add(cone);
 
-		coneTween = FlxTween.linearPath(cone, [
-			new FlxPoint(0, FlxG.height - cone.height),
-			new FlxPoint(FlxG.width-cone.width+1, FlxG.height - cone.height)
-		], 1, true, {
-			type: FlxTweenType.PINGPONG,
-			ease: FlxEase.sineInOut,
-		});
-		FlxTween.globalManager.update(0);
-
-		iceCreamBall = new IceCreamBall(flavor);
-		add(iceCreamBall);
+		Timer.delay(function() {
+			coneTween = FlxTween.linearPath(cone, [
+				new FlxPoint(0, FlxG.height - cone.height),
+				new FlxPoint(FlxG.width-cone.width - 2, FlxG.height - cone.height)
+			], FlxG.random.float(1, 3), true, {
+				type: FlxTweenType.ONESHOT,
+				ease: FlxEase.sineInOut,
+				onComplete: function(t:FlxTween) {
+					rateCone();
+				}
+			});
+			FlxTween.globalManager.update(0);
+		}, FlxG.random.int(500, 1500));
 
 		scoop = new FlxSprite();
 		scoop.loadGraphic(AssetPaths.big_scoop_1__png, true, 43, 22);
 		scoop.animation.add('idle', [0]);
-		scoop.animation.add('flip', [1, 2], false);
+		scoop.animation.add('flip', [1, 2], 15, false);
 		scoop.animation.play('idle');
 		scoop.x = FlxG.width - scoop.width;
 		scoop.y = 3;
 		add(scoop);
 
+		iceCreamBall = new IceCreamBall(flavor);
+		add(iceCreamBall);
+
 		// ice cream needs to align with the scoop
 		iceCreamBall.x = scoop.x + iceCreamBall.offset.x;
-		iceCreamBall.y = scoop.y + iceCreamBall.offset.y - 3;
+		iceCreamBall.y = scoop.y + iceCreamBall.offset.y - 8;
 	}
 
 	override public function update(elapsed:Float) {
@@ -87,39 +93,31 @@ class ConeStackState extends FlxSubState {
 
 		if (!dropTriggered && FlxG.mouse.justPressed) {
 			dropTriggered = true;
+			iceCreamBall.fall();
 			scoop.animation.play('flip');
 			iceCreamBall.acceleration.y = 120;
 		}
 
 		if (!iceCreamBall.plopped) {
-			FlxG.collide(cone, iceCreamBall, handleFinish);
+			if (FlxG.collide(cone, iceCreamBall)) {
+				attachPointX = Math.round(cone.x - iceCreamBall.x);
+				iceCreamBall.velocity.set(0, 0);
+				iceCreamBall.acceleration.set(0, 0);
+				iceCreamBall.plop(cone);
+			}
 		}
 
-		if (iceCreamBall.y  > FlxG.height) {
-			trace("you failed");
-			close();
-			returnState.openSubState(new ChangeSortState(returnState, 2));
-		}
-
-		if (plopOccurred && !iceCreamBall.plopped) {
-			coneTween.cancel();
-
-			iceCreamBall.velocity.set(0, 0);
-			iceCreamBall.acceleration.set(0, 0);
-			iceCreamBall.plop(cone);
-
-			trace("nice plopper");
-
-			// TODO: animations and rating, etc, before closing. Make this cleaner
-			Timer.delay(()-> {
-				close();
-				returnState.openSubState(new ChangeSortState(returnState, 4));
-			}, 2000);
+		if (attachPointX != -1.0) {
+			iceCreamBall.x = cone.x - attachPointX;
 		}
 	}
 
-	function handleFinish(c:FlxSprite, i:IceCreamBall) {
-		plopOccurred = true;
+	function rateCone() {
+		trace("RATING PENDING");
+		Timer.delay(()-> {
+			close();
+			returnState.openSubState(new ChangeSortState(returnState, 4));
+		}, 2000);
 	}
 
 	override public function onFocusLost() {

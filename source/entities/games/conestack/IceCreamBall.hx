@@ -11,19 +11,28 @@ class IceCreamBall extends FlxSprite {
 	public var plopped = false;
 
 	public function new(flavor:IceCreamFlavor) {
-		super(switch (flavor) {
+		super();
+
+		loadGraphic(switch (flavor) {
 			case Chocolate:
 				AssetPaths.chocolate_ball__png;
 			case Vanilla:
 				AssetPaths.vanilla_ball__png;
 			case Strawberry:
 				AssetPaths.strawberry_ball__png;
-		});
+		}, true, 22, 21);
+		animation.add("resting", [0]);
+		animation.add("falling", [1]);
+		animation.play("resting");
 
 		this.flavor = flavor;
 
 		setSize(14, 14);
 		offset.set(4, 4);
+	}
+
+	public function fall() {
+		animation.play("falling");
 	}
 
 	public function plop(against:FlxSprite) {

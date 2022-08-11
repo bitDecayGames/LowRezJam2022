@@ -19,14 +19,14 @@ class PopsiclePickerState extends FlxSubState {
 	var returnState:TruckState;
 
 	var popsicles = [
-		new Popsicle(AssetPaths.greenOtter__png),
-		new Popsicle(AssetPaths.purpleOtter__png),
-		new Popsicle(AssetPaths.bombpop__png),
-		new Popsicle(AssetPaths.bitDecay__png),
-		new Popsicle(AssetPaths.doublesicle__png),
-		new Popsicle(AssetPaths.dreamsicle__png),
-		new Popsicle(AssetPaths.fudgesicle__png),
-		new Popsicle(AssetPaths.goodHumor__png),
+		AssetPaths.greenOtter__png,
+		AssetPaths.purpleOtter__png,
+		AssetPaths.bombpop__png,
+		AssetPaths.bitDecay__png,
+		AssetPaths.doublesicle__png,
+		AssetPaths.dreamsicle__png,
+		AssetPaths.fudgesicle__png,
+		AssetPaths.goodHumor__png,
 	];
 
 	var hand:FlxSprite;
@@ -48,7 +48,12 @@ class PopsiclePickerState extends FlxSubState {
 
 		FlxG.camera.pixelPerfectRender = true;
 
-		desired = FlxG.random.int(0, popsicles.length);
+		// Keep the render order fresh. Nobody should notice this little hack
+		if (FlxG.random.bool()) {
+			popsicles.reverse();
+		}
+
+		desired = FlxG.random.int(0, popsicles.length - 1);
 
 		chest = new FlxSprite(AssetPaths.chest_bg__png);
 		chest.width = 38;
@@ -63,7 +68,7 @@ class PopsiclePickerState extends FlxSubState {
 		var speechBubble = new FlxSprite(AssetPaths.speachBubble__png);
 		add(speechBubble);
 
-		childsChoice = new FlxSprite(popsicles[desired].asset);
+		childsChoice = new FlxSprite(popsicles[desired]);
 		childsChoice.setPositionMidpoint(52,20);
 		add(childsChoice);
 
@@ -72,7 +77,8 @@ class PopsiclePickerState extends FlxSubState {
 		errorChoice.alpha = 0;
 		add(errorChoice);
 
-		for (p in popsicles) {
+		for (asset in popsicles) {
+			var p = new Popsicle(asset);
 			p.setPosition(
 				FlxG.random.float(0, 38 - p.width),
 				FlxG.random.float(0, FlxG.height - p.height)
@@ -99,7 +105,7 @@ class PopsiclePickerState extends FlxSubState {
 
 		// Collide with hand, check if type is correct
 		if (FlxG.overlap(c, hand)) {
-			if (popsicle == popsicles[desired]) {
+			if (popsicle.asset == popsicles[desired]) {
 				close();
 				returnState.openSubState(new ChangeSortState(returnState, 3));
 			} else {
