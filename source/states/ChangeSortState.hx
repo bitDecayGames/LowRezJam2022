@@ -56,17 +56,17 @@ class ChangeSortState extends FlxSubState {
 		3 => 14,
 	];
 
-	public function new(returnState:FlxState, coinCount:Int) {
+	var returnState:TruckState;
+
+
+	public function new(returnState:TruckState, coinCount:Int) {
 		super();
+		this.returnState = returnState;
 		coinsToSpawn = coinCount;
 	}
 
 	override public function create() {
 		super.create();
-
-		if (FlxG.plugins.get(FlxMouseControl) == null) {
-			FlxG.plugins.add(new FlxMouseControl());
-		}
 
 		FlxG.camera.pixelPerfectRender = true;
 
@@ -130,6 +130,8 @@ class ChangeSortState extends FlxSubState {
 				coins.remove(c);
 
 				if (coins.length == 0) {
+					// TODO: Done with customer, report back somehow
+					returnState.dismissCustomer();
 					close();
 				}
 			} else {

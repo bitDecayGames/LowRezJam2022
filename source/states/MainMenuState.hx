@@ -1,5 +1,9 @@
 package states;
 
+import flixel.tweens.FlxTween;
+import flixel.addons.effects.chainable.FlxRainbowEffect;
+import flixel.addons.effects.chainable.FlxEffectSprite;
+import flixel.FlxSprite;
 import states.transitions.Trans;
 import states.transitions.SwirlTransition;
 import states.AchievementsState;
@@ -25,71 +29,33 @@ class MainMenuState extends FlxUIState {
 	var _btnCredits:FlxButton;
 	var _btnExit:FlxButton;
 
-	var _txtTitle:FlxText;
+	var _imgTitle:FlxSprite;
+	var _imgStartPrompt:FlxSprite;
+
+	var transitioning = false;
 
 	override public function create():Void {
-		_xml_id = "main_menu";
-		if (Configure.config.menus.keyboardNavigation || Configure.config.menus.controllerNavigation) {
-			_makeCursor = true;
-		}
-
 		super.create();
-
-		if (_makeCursor) {
-			cursor.loadGraphic(AssetPaths.pointer__png, true, 32, 32);
-			cursor.animation.add("pointing", [0, 1], 3);
-			cursor.animation.play("pointing");
-
-			var keys:Int = 0;
-			if (Configure.config.menus.keyboardNavigation) {
-				keys |= FlxUICursor.KEYS_ARROWS | FlxUICursor.KEYS_WASD;
-			}
-			if (Configure.config.menus.controllerNavigation) {
-				keys |= FlxUICursor.GAMEPAD_DPAD;
-			}
-			cursor.setDefaultKeys(keys);
-		}
 
 		FmodManager.PlaySong(FmodSongs.LetsGo);
 		bgColor = FlxColor.TRANSPARENT;
 		FlxG.camera.pixelPerfectRender = true;
 
-		#if !windows
-		// Hide exit button for non-windows targets
-		var test = _ui.getAsset("exit_button");
-		test.visible = false;
-		#end
+		_imgTitle = new FlxSprite(AssetPaths.title_image__png);
+		add(_imgTitle);
+
+		_imgStartPrompt = new FlxSprite(AssetPaths.startText__png);
+
+		var rainbow = new FlxEffectSprite(_imgStartPrompt);
+		var effect = new FlxRainbowEffect(1, 1, 1);
+		rainbow.effects = [effect];
+		add(rainbow);
 
 		// Trigger our focus logic as we are just creating the scene
 		this.handleFocus();
 
 		// we will handle transitions manually
-		transOut = null;
-	}
-
-	override public function getEvent(name:String, sender:Dynamic, data:Dynamic, ?params:Array<Dynamic>):Void {
-		if (name == FlxUITypedButton.CLICK_EVENT) {
-			var button_action:String = params[0];
-			trace('Action: "${button_action}"');
-
-			if (button_action == "play") {
-				clickPlay();
-			}
-
-			if (button_action == "credits") {
-				clickCredits();
-			}
-
-			if (button_action == "achievements") {
-				clickAchievements();
-			}
-
-			#if windows
-			if (button_action == "exit") {
-				clickExit();
-			}
-			#end
-		}
+		// transOut = null;
 	}
 
 	override public function update(elapsed:Float):Void {
@@ -102,16 +68,21 @@ class MainMenuState extends FlxUIState {
 			FmodManager.PlaySoundOneShot(FmodSFX.MenuSelect);
 			trace("---------- Bitlytics Stopped ----------");
 		}
+
+		if (!transitioning && FlxG.mouse.justReleased) {
+			clickPlay();
+		}
 	}
 
 	function clickPlay():Void {
-		FmodManager.StopSong();
-		var swirlOut = new SwirlTransition(Trans.OUT, () -> {
-			// make sure our music is stopped;
-			FmodManager.StopSongImmediately();
-			FlxG.switchState(new PlayState());
-		}, FlxColor.GRAY);
-		openSubState(swirlOut);
+		// FmodManager.StopSong();
+		// var swirlOut = new SwirlTransition(Trans.OUT, () -> {
+		// 	// make sure our music is stopped;
+		// 	FmodManager.StopSongImmediately();
+		// 	FlxG.switchState(new PlayState());
+		// }, FlxColor.GRAY);
+		// openSubState(swirlOut);
+		FmodFlxUtilities.TransitionToStateAndStopMusic(new TruckState());
 	}
 
 	function clickCredits():Void {

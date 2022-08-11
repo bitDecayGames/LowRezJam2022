@@ -31,7 +31,7 @@ class ConeStackState extends FlxSubState {
 	var dropTriggered = false;
 	var plopOccurred = false;
 
-	var returnState:FlxState;
+	var returnState:TruckState;
 
 	var splats = [
 		IceCreamFlavor.Chocolate => AssetPaths.chocolate_plop__png,
@@ -39,7 +39,7 @@ class ConeStackState extends FlxSubState {
 		IceCreamFlavor.Strawberry => AssetPaths.strawberry_plop__png,
 	];
 
-	public function new(returnState:FlxState, flavor:IceCreamFlavor) {
+	public function new(returnState:TruckState, flavor:IceCreamFlavor) {
 		super();
 
 		this.flavor = flavor;
@@ -50,10 +50,6 @@ class ConeStackState extends FlxSubState {
 
 	override public function create() {
 		super.create();
-
-		if (FlxG.plugins.get(FlxMouseControl) == null) {
-			FlxG.plugins.add(new FlxMouseControl());
-		}
 
 		FlxG.camera.pixelPerfectRender = true;
 
