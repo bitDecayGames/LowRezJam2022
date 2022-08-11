@@ -36,6 +36,7 @@ class TruckState extends FlxTransitionableState {
 	// The valid spots customers may go to start an order
 	var counterSpace = FlxRect.get(6, 39, 50-13, 7);
 
+	// TODO: Might need to tweak these a tiny bit
 	var lineCoords = [
 		0 => 5,
 		1 => 15,
@@ -81,7 +82,7 @@ class TruckState extends FlxTransitionableState {
 
 		add(customers);
 
-		truck = new FlxSprite(AssetPaths.mockTruckLayout__png);
+		truck = new FlxSprite(AssetPaths.truck_layout_bg__png);
 		add(truck);
 
 		customerTimer = new FlxTimer();
@@ -107,7 +108,6 @@ class TruckState extends FlxTransitionableState {
 
 	function spawnCustomer(timer:FlxTimer) {
 		var custLine = FlxG.random.int(0, 4);
-		custLine = 2;
 		var cust = new Customer();
 		cust.lineNum = custLine;
 		cust.linePosition = lineDepths[custLine];
@@ -123,7 +123,8 @@ class TruckState extends FlxTransitionableState {
 			activeCustomer = cust;
 
 			// TODO: Need a transition here of some sort (swipe out?)
-			var scoopState = new ScoopState(this);
+			var scoopState:FlxSubState = new ScoopState(this);
+			scoopState = new PopsiclePickerState(this);
 			openSubState(scoopState);
 
 			// TODO: This has a bug where the indices get jacked and customers will move UP before getting into the proper position
