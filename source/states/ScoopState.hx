@@ -23,9 +23,9 @@ class ScoopState extends FlxSubState {
 	var vanilla:FlxExtendedSprite;
 	var strawberry:FlxExtendedSprite;
 
-	var returnState:FlxState;
+	var returnState:TruckState;
 
-	public function new(returnState:FlxState) {
+	public function new(returnState:TruckState) {
 		super();
 
 		this.returnState = returnState;
@@ -34,10 +34,6 @@ class ScoopState extends FlxSubState {
 
 	override public function create() {
 		super.create();
-
-		if (FlxG.plugins.get(FlxMouseControl) == null) {
-			FlxG.plugins.add(new FlxMouseControl());
-		}
 
 		FlxG.camera.pixelPerfectRender = true;
 

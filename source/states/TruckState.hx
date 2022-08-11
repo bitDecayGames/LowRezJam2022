@@ -27,6 +27,8 @@ class TruckState extends FlxTransitionableState {
 	var customers:FlxTypedGroup<Customer> = new FlxTypedGroup<Customer>();
 	var truck:FlxSprite;
 
+	var activeCustomer:Customer = null;
+
 	// TODO: probably makes sense to have a min/max spawn window and to pick something
 	// randomly in between. As difficulty increases, the min/max decrease
 	var customerTimer:FlxTimer;
@@ -75,10 +77,6 @@ class TruckState extends FlxTransitionableState {
 	override public function create() {
 		super.create();
 
-		if (FlxG.plugins.get(FlxMouseControl) == null) {
-			FlxG.plugins.add(new FlxMouseControl());
-		}
-
 		FlxG.camera.pixelPerfectRender = true;
 
 		add(customers);
@@ -122,6 +120,8 @@ class TruckState extends FlxTransitionableState {
 				return;
 			}
 
+			activeCustomer = cust;
+
 			// TODO: Need a transition here of some sort (swipe out?)
 			var scoopState = new ScoopState(this);
 			openSubState(scoopState);
@@ -130,16 +130,6 @@ class TruckState extends FlxTransitionableState {
 			// in line. This has to be because of how we are managing our arrays
 			lineCustomers[cust.lineNum][cust.linePosition] = null;
 			lineDepths[custLine]--;
-			// TODO: Real customer exit
-			var exitXCoord = cust.lineNum <= 2 ? -20 : FlxG.width;
-			if (cust.lineNum == 2 && FlxG.random.bool()) {
-				exitXCoord = FlxG.width;
-			}
-			FlxTween.linearPath(cust, [FlxPoint.get(cust.x, cust.y), FlxPoint.get(exitXCoord, cust.y)], 40, false, {
-				onComplete: function (t) {
-					cust.kill();
-				}
-			});
 		}
 
 		moveCustomerToPosition(cust);
@@ -162,6 +152,25 @@ class TruckState extends FlxTransitionableState {
 		FlxTween.linearPath(cust, [FlxPoint.get(cust.x, cust.y), FlxPoint.get(target.x, cust.y), FlxPoint.get(target.x, target.y)], 40, false, {
 			onComplete: function (t) {
 				cust.settled = true;
+			}
+		});
+	}
+
+	public function dismissCustomer() {
+		if (activeCustomer == null) {
+			return;
+		}
+
+		// TODO: Real customer exit
+		var cust = activeCustomer;
+		activeCustomer = null;
+		var exitXCoord = cust.lineNum <= 2 ? -20 : FlxG.width;
+		if (cust.lineNum == 2 && FlxG.random.bool()) {
+			exitXCoord = FlxG.width;
+		}
+		FlxTween.linearPath(cust, [FlxPoint.get(cust.x, cust.y), FlxPoint.get(exitXCoord, cust.y)], 40, false, {
+			onComplete: function (t) {
+				cust.kill();
 			}
 		});
 	}

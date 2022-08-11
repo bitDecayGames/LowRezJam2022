@@ -47,6 +47,7 @@ class Main extends Sprite {
 		addChild(new FlxGame(64, 64, startingState, 1, 60, 60, true, false));
 
 		FlxG.fixedTimestep = false;
+		FlxG.plugins.add(new FlxMouseControl());
 
 		// Disable flixel volume controls as we don't use them because of FMOD
 		FlxG.sound.muteKeys = null;
