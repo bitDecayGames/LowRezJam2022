@@ -1,5 +1,9 @@
 package states;
 
+import entities.OrderTicket;
+import orders.OrderType;
+import flixel.addons.effects.FlxClothSprite;
+import flixel.math.FlxMath;
 import flixel.FlxSubState;
 import flixel.util.FlxSort;
 import entities.Customer;
@@ -16,6 +20,7 @@ import flixel.addons.display.FlxExtendedSprite;
 import flixel.util.FlxColor;
 import achievements.Achievements;
 import flixel.addons.transition.FlxTransitionableState;
+import entities.ArrowCursor;
 
 import flixel.FlxSprite;
 import flixel.FlxG;
@@ -24,10 +29,21 @@ using extensions.FlxStateExt;
 
 class TruckState extends FlxTransitionableState {
 
+	var bg:FlxSprite;
 	var customers:FlxTypedGroup<Customer> = new FlxTypedGroup<Customer>();
+
+	// for render order
+	var tickets:FlxTypedGroup<FlxSprite> = new FlxTypedGroup<FlxSprite>();
+	// for position managment
+	var ticketQueue:Array<OrderTicket> = [];
+
 	var truck:FlxSprite;
+	var heatOverlay:FlxSprite;
+	var thermometer:FlxSprite;
+	var redMercuryLevel:FlxSprite;
 
 	var activeCustomer:Customer = null;
+	var activeTicket:OrderTicket = null;
 
 	// TODO: probably makes sense to have a min/max spawn window and to pick something
 	// randomly in between. As difficulty increases, the min/max decrease
@@ -38,11 +54,11 @@ class TruckState extends FlxTransitionableState {
 
 	// TODO: Might need to tweak these a tiny bit
 	var lineCoords = [
-		0 => 5,
-		1 => 15,
-		2 => 25,
-		3 => 35,
-		4 => 45,
+		0 => 3,
+		1 => 12,
+		2 => 21,
+		3 => 32,
+		4 => 40,
 	];
 
 	var lineBaseY = 42;
@@ -62,6 +78,11 @@ class TruckState extends FlxTransitionableState {
 		4 => 0,
 	];
 
+	// 0 = perfect, 1 = game over
+	var temperature = 0.30;
+
+	var ticketTest:FlxSprite;
+
 	public function new() {
 		super();
 
@@ -80,17 +101,64 @@ class TruckState extends FlxTransitionableState {
 
 		FlxG.camera.pixelPerfectRender = true;
 
+		bg = new FlxSprite(AssetPaths.background__png);
+		add(bg);
+
 		add(customers);
+
+		heatOverlay = new FlxSprite();
+		heatOverlay.makeGraphic(64, 64, FlxColor.fromRGB(243, 242, 140));
+		heatOverlay.alpha = 0;
+		add(heatOverlay);
 
 		truck = new FlxSprite(AssetPaths.truck_layout_bg__png);
 		add(truck);
 
+		redMercuryLevel = new FlxSprite(56 + 3, 13 + 21);
+		redMercuryLevel.makeGraphic(3, 1, FlxColor.RED);
+		add(redMercuryLevel);
+
+		thermometer = new FlxSprite(56, 13, AssetPaths.thermometer__png);
+		add(thermometer);
+
 		customerTimer = new FlxTimer();
 		customerTimer.start(5, spawnCustomer, 0);
+
+		add(tickets);
+
+		// Add cursor last so it is on top
+		add(new ArrowCursor());
 	}
+
+	#if temp_test
+	var increasing = true;
+	#end
 
 	override public function update(elapsed:Float) {
 		super.update(elapsed);
+
+		#if temp_test
+		if (increasing) {
+			temperature += .002;
+			if (temperature >= 1.0) {
+				increasing = false;
+			}
+		} else {
+			temperature -= .002;
+			if (temperature <= 0) {
+				increasing = true;
+			}
+		}
+		#end
+
+
+		// this is some math because of how scale works
+		redMercuryLevel.y = FlxMath.lerp(thermometer.y+1, thermometer.y + 21, 1 - temperature);
+		// Adding +1 here to keep gaps from forming between the thermometer ball and the main shaft
+		redMercuryLevel.scale.y = thermometer.y + 21 - redMercuryLevel.y + 1;
+		redMercuryLevel.height = redMercuryLevel.scale.y;
+		redMercuryLevel.offset.y = -redMercuryLevel.height/2;
+		heatOverlay.alpha = FlxMath.lerp(0, .85, temperature);
 
 		for (c in customers) {
 			if (c.linePosition > 0) {
@@ -113,25 +181,48 @@ class TruckState extends FlxTransitionableState {
 		cust.linePosition = lineDepths[custLine];
 		cust.spacingVariance = FlxG.random.int(0, 2) - 1;
 
-		cust.enableMouseClicks(true, true);
-		cust.mousePressedCallback = function(spr:FlxExtendedSprite, x:Int, y:Int) {
+		var orderType = FlxG.random.bool() ? OrderType.SCOOP : OrderType.POPSICLE;
+		var ticket = new OrderTicket(orderType, cust);
+		ticket.x = FlxG.width;
+		ticket.y = 1;
+
+		ticket.enableMouseClicks(true, true);
+		ticket.mousePressedCallback = function(spr:FlxExtendedSprite, x:Int, y:Int) {
 			if (!cust.settled) {
 				// only handle clicks if they are settled
 				return;
 			}
 
-			activeCustomer = cust;
+			activeTicket = ticket;
 
 			// TODO: Need a transition here of some sort (swipe out?)
-			openSubState(FlxG.random.bool() ?new ScoopState(this) : new PopsiclePickerState(this));
-
-			// TODO: This has a bug where the indices get jacked and customers will move UP before getting into the proper position
-			// in line. This has to be because of how we are managing our arrays
-			lineCustomers[cust.lineNum][cust.linePosition] = null;
-			lineDepths[custLine]--;
+			openSubState(ticket.getOrderState(this));
 		}
 
-		moveCustomerToPosition(cust);
+		cust.enableMouseClicks(true, true);
+		// cust.mousePressedCallback = function(spr:FlxExtendedSprite, x:Int, y:Int) {
+		// 	if (!cust.settled) {
+		// 		// only handle clicks if they are settled
+		// 		return;
+		// 	}
+
+		// 	activeCustomer = cust;
+
+		// 	// TODO: Need a transition here of some sort (swipe out?)
+		// 	openSubState(ticket.getOrderState(this));
+
+		// 	// TODO: This has a bug where the indices get jacked and customers will move UP before getting into the proper position
+		// 	// in line. This has to be because of how we are managing our arrays
+		// 	lineCustomers[cust.lineNum][cust.linePosition] = null;
+		// 	lineDepths[custLine]--;
+		// }
+
+		moveCustomerToPosition(cust, function() {
+			tickets.add(ticket);
+			ticketQueue.push(ticket);
+
+			moveTicketToPosition(ticket);
+		});
 
 		if (lineDepths[custLine] < cust.linePosition) {
 			lineCustomers[custLine].push(cust);
@@ -141,9 +232,27 @@ class TruckState extends FlxTransitionableState {
 		lineDepths[custLine]++;
 
 		customers.add(cust);
+
+		ticketTest = new FlxSprite(FlxG.width, 1, AssetPaths.scoops_ticket__png);
+		// ticketTest.meshVelocity.set(0, 100);
+		tickets.add(ticketTest);
 	}
 
-	function moveCustomerToPosition(cust:Customer) {
+	function moveTicketToPosition(ticket:OrderTicket) {
+		ticket.settled = false;
+		var position = ticketQueue.indexOf(ticket);
+		var variance = FlxG.random.int(0, 2) - 2;
+
+		var target = FlxPoint.get(position * 13 + variance, 1);
+
+		FlxTween.linearPath(ticket, [FlxPoint.get(ticket.x, ticket.y), FlxPoint.get(target.x, ticket.y), FlxPoint.get(target.x, target.y)], 100, false, {
+			onComplete: function (t) {
+				ticket.settled = true;
+			}
+		});
+	}
+
+	function moveCustomerToPosition(cust:Customer, onMoveComplete:()->Void=null) {
 		cust.settled = false;
 		var variance = FlxG.random.int(0, 4) - 2;
 		var target = FlxPoint.get(lineCoords[cust.lineNum] + variance, lineBaseY - cust.linePosition * customerSpacing + cust.spacingVariance);
@@ -151,18 +260,28 @@ class TruckState extends FlxTransitionableState {
 		FlxTween.linearPath(cust, [FlxPoint.get(cust.x, cust.y), FlxPoint.get(target.x, cust.y), FlxPoint.get(target.x, target.y)], 40, false, {
 			onComplete: function (t) {
 				cust.settled = true;
+				if (onMoveComplete != null) {
+					// TODO: Ring bell SFX
+					onMoveComplete();
+				}
 			}
 		});
 	}
 
 	public function dismissCustomer() {
-		if (activeCustomer == null) {
+		if (activeTicket == null) {
 			return;
 		}
 
-		// TODO: Real customer exit
-		var cust = activeCustomer;
-		activeCustomer = null;
+		var ticketPosition = ticketQueue.indexOf(activeTicket);
+		ticketQueue.remove(activeTicket);
+
+		// keep a temp reference and clear out our active ticket
+		var ticket = activeTicket;
+		activeTicket = null;
+
+		var cust = ticket.orderingCustomer;
+
 		var exitXCoord = cust.lineNum <= 2 ? -20 : FlxG.width;
 		if (cust.lineNum == 2 && FlxG.random.bool()) {
 			exitXCoord = FlxG.width;
@@ -170,6 +289,17 @@ class TruckState extends FlxTransitionableState {
 		FlxTween.linearPath(cust, [FlxPoint.get(cust.x, cust.y), FlxPoint.get(exitXCoord, cust.y)], 40, false, {
 			onComplete: function (t) {
 				cust.kill();
+			}
+		});
+
+		// move all of our tickets behind this one up
+		for (t in ticketPosition...ticketQueue.length) {
+			moveTicketToPosition(ticketQueue[t]);
+		}
+
+		FlxTween.linearPath(ticket, [FlxPoint.get(ticket.x, ticket.y), FlxPoint.get(-ticket.width, ticket.y)], 100, false, {
+			onComplete: function (t) {
+				ticket.kill();
 			}
 		});
 	}

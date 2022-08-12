@@ -1,5 +1,8 @@
 package;
 
+import flixel.system.FlxAssets.FlxShader;
+import openfl.display.StageQuality;
+import openfl.filters.ShaderFilter;
 import flixel.addons.plugin.FlxMouseControl;
 import achievements.Achievements;
 import helpers.Storage;
@@ -45,6 +48,9 @@ class Main extends Sprite {
 		FlxTransitionableState.defaultTransOut = new TransitionData(FADE, FlxColor.BLACK, 2);
 
 		addChild(new FlxGame(64, 64, startingState, 1, 60, 60, true, false));
+
+		FlxG.game.setFilters([new ShaderFilter(new FlxShader())]);
+		FlxG.game.stage.quality = StageQuality.LOW;
 
 		FlxG.fixedTimestep = false;
 		FlxG.plugins.add(new FlxMouseControl());
