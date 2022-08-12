@@ -1,5 +1,6 @@
 package states;
 
+import entities.HandGrabCursor;
 import flixel.FlxObject;
 import flixel.FlxSubState;
 import flixel.FlxState;
@@ -81,6 +82,8 @@ class ChangeSortState extends FlxSubState {
 		for (i in 0...coinsToSpawn) {
 			makeCoin();
 		}
+
+		add(new HandGrabCursor());
 	}
 
 
@@ -104,7 +107,7 @@ class ChangeSortState extends FlxSubState {
 		var size = Std.int(coinSizes[type]);
 		var coin = new FlxExtendedSprite(
 			FlxG.random.int(0, Std.int(FlxG.width - size)),
-			FlxG.random.int(0, Std.int(FlxG.height * .75 - size)),
+			FlxG.random.int(0, Std.int(bins[0].y - size)),
 			coinColors[type]
 		);
 		coin.enableMouseClicks(false, true);
@@ -123,8 +126,6 @@ class ChangeSortState extends FlxSubState {
 
 	function stopCoinDrag(type:Int) {
 		return function(c:FlxExtendedSprite, x:Int, y:Int) {
-			trace('stop dragged');
-
 			if (FlxG.overlap(c, bins[type])) {
 				c.kill();
 				coins.remove(c);
@@ -134,9 +135,9 @@ class ChangeSortState extends FlxSubState {
 					returnState.dismissCustomer();
 					close();
 				}
-			} else {
+			// } else {
+			} else if (c.y > bins[0].y - c.height) {
 				// TODO: Make this only reject coins if they place them in the wrong bin
-			// } else if (c.y > ) {
 				c.draggable = false;
 				c.alpha = 0.5;
 				FlxTween.linearPath(c, [

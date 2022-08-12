@@ -1,30 +1,20 @@
 package states;
 
-import flixel.tweens.FlxTween;
+import flixel.FlxState;
 import flixel.addons.effects.chainable.FlxRainbowEffect;
 import flixel.addons.effects.chainable.FlxEffectSprite;
 import flixel.FlxSprite;
-import states.transitions.Trans;
-import states.transitions.SwirlTransition;
 import states.AchievementsState;
 import com.bitdecay.analytics.Bitlytics;
-import config.Configure;
 import flixel.FlxG;
-import flixel.addons.ui.FlxUICursor;
 import flixel.addons.ui.FlxUIState;
-import flixel.addons.ui.FlxUITypedButton;
-import flixel.text.FlxText;
 import flixel.ui.FlxButton;
 import flixel.util.FlxColor;
 import haxefmod.flixel.FmodFlxUtilities;
 
 using extensions.FlxStateExt;
 
-#if windows
-import lime.system.System;
-#end
-
-class MainMenuState extends FlxUIState {
+class MainMenuState extends FlxState {
 	var _btnPlay:FlxButton;
 	var _btnCredits:FlxButton;
 	var _btnExit:FlxButton;
@@ -47,7 +37,7 @@ class MainMenuState extends FlxUIState {
 		_imgStartPrompt = new FlxSprite(AssetPaths.startText__png);
 
 		var rainbow = new FlxEffectSprite(_imgStartPrompt);
-		var effect = new FlxRainbowEffect(1, 1, 1);
+		var effect = new FlxRainbowEffect();
 		rainbow.effects = [effect];
 		add(rainbow);
 
@@ -92,12 +82,6 @@ class MainMenuState extends FlxUIState {
 	function clickAchievements():Void {
 		FmodFlxUtilities.TransitionToState(new AchievementsState());
 	}
-
-	#if windows
-	function clickExit():Void {
-		System.exit(0);
-	}
-	#end
 
 	override public function onFocusLost() {
 		super.onFocusLost();

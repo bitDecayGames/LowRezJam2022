@@ -1,5 +1,6 @@
 package states;
 
+import entities.HandGrabCursor;
 import flixel.tweens.FlxEase;
 import flixel.math.FlxPoint;
 import flixel.tweens.FlxTween;
@@ -91,7 +92,7 @@ class PopsiclePickerState extends FlxSubState {
 		}
 
 		// Add cursor last so it is on top
-		add(new ScoopCursor());
+		add(new HandGrabCursor());
 	}
 
 	function sicleDrag(c:FlxExtendedSprite, x:Int, y:Int) {
