@@ -54,28 +54,26 @@ class TruckState extends FlxTransitionableState {
 
 	// TODO: Might need to tweak these a tiny bit
 	var lineCoords = [
-		0 => 3,
-		1 => 12,
-		2 => 21,
-		3 => 32,
-		4 => 40,
+		0 => 2,
+		1 => 15,
+		2 => 28,
+		3 => 41,
 	];
 
 	var lineBaseY = 42;
-	var customerSpacing = 3;
+	var customerSpacing = 6;
+	var lineCount = 4;
 	var lineCustomers:Map<Int, Array<Customer>> = [
 		0 => [],
 		1 => [],
 		2 => [],
 		3 => [],
-		4 => [],
 	];
 	var lineDepths:Map<Int, Int> = [
 		0 => 0,
 		1 => 0,
 		2 => 0,
 		3 => 0,
-		4 => 0,
 	];
 
 	// 0 = perfect, 1 = game over
@@ -162,7 +160,7 @@ class TruckState extends FlxTransitionableState {
 
 		for (c in customers) {
 			if (c.linePosition > 0) {
-					if (c.settled && lineCustomers[c.lineNum][c.linePosition - 1] == null) {
+				if (c.settled && lineCustomers[c.lineNum][c.linePosition - 1] == null) {
 					lineCustomers[c.lineNum][c.linePosition] = null;
 					c.linePosition--;
 					lineCustomers[c.lineNum][c.linePosition] = c;
@@ -175,7 +173,7 @@ class TruckState extends FlxTransitionableState {
 	}
 
 	function spawnCustomer(timer:FlxTimer) {
-		var custLine = FlxG.random.int(0, 4);
+		var custLine = FlxG.random.int(0, lineCount-1);
 		var cust = new Customer();
 		cust.lineNum = custLine;
 		cust.linePosition = lineDepths[custLine];
@@ -185,6 +183,8 @@ class TruckState extends FlxTransitionableState {
 		var ticket = new OrderTicket(orderType, cust);
 		ticket.x = FlxG.width;
 		ticket.y = 1;
+
+		cust.ticket = ticket;
 
 		ticket.enableMouseClicks(true, true);
 		ticket.mousePressedCallback = function(spr:FlxExtendedSprite, x:Int, y:Int) {
@@ -217,12 +217,7 @@ class TruckState extends FlxTransitionableState {
 		// 	lineDepths[custLine]--;
 		// }
 
-		moveCustomerToPosition(cust, function() {
-			tickets.add(ticket);
-			ticketQueue.push(ticket);
-
-			moveTicketToPosition(ticket);
-		});
+		moveCustomerToPosition(cust);
 
 		if (lineDepths[custLine] < cust.linePosition) {
 			lineCustomers[custLine].push(cust);
@@ -260,9 +255,12 @@ class TruckState extends FlxTransitionableState {
 		FlxTween.linearPath(cust, [FlxPoint.get(cust.x, cust.y), FlxPoint.get(target.x, cust.y), FlxPoint.get(target.x, target.y)], 40, false, {
 			onComplete: function (t) {
 				cust.settled = true;
-				if (onMoveComplete != null) {
+				if (cust.linePosition == 0) {
 					// TODO: Ring bell SFX
-					onMoveComplete();
+					tickets.add(cust.ticket);
+					ticketQueue.push(cust.ticket);
+
+					moveTicketToPosition(cust.ticket);
 				}
 			}
 		});

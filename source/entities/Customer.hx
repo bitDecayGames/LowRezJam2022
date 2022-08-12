@@ -10,11 +10,24 @@ class Customer extends FlxExtendedSprite {
 	public var lineNum:Int = 0;
 	public var settled = false;
 
+	public var ticket:OrderTicket;
+
+	private static final assets = [
+		AssetPaths.blackBoy__png,
+		AssetPaths.blackGirl__png,
+		AssetPaths.brownBoy__png,
+		AssetPaths.brownGirl__png,
+		AssetPaths.yellowBoy__png,
+		AssetPaths.yellowGirl__png,
+		AssetPaths.whiteBoy__png,
+		AssetPaths.whiteGirl__png,
+	];
+
 	public function new() {
 		super(
 			x = FlxG.random.bool() ? -32 : FlxG.width,
-			y = FlxG.random.int(0, 20)
+			y = FlxG.random.int(0, 20),
+			assets[FlxG.random.int(0, assets.length-1)]
 		);
-		makeGraphic(16, 32, FlxColor.fromRGBFloat(FlxG.random.float(.5, 1), FlxG.random.float(.5, 1), FlxG.random.float(.5, 1)));
 	}
 }
