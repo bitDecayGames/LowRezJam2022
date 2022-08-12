@@ -62,6 +62,7 @@ class Main extends Sprite {
 		#end
 
 		FlxG.mouse.useSystemCursor = Configure.config.mouse.useSystemCursor;
+		FlxG.mouse.visible = Configure.config.mouse.cursorVisible;
 
 		FlxTextFactory.defaultFont = AssetPaths.Brain_Slab_8__ttf;
 	}
