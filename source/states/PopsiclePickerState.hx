@@ -108,7 +108,8 @@ class PopsiclePickerState extends FlxSubState {
 		if (FlxG.overlap(c, hand)) {
 			if (popsicle.asset == popsicles[desired]) {
 				close();
-				returnState.openSubState(new ChangeSortState(returnState, 3));
+				returnState.dismissCustomer(3);
+				// returnState.openSubState(new ChangeSortState(returnState, 3));
 			} else {
 				// WRONG. throw it back
 				shufflePopsicle(popsicle, true);

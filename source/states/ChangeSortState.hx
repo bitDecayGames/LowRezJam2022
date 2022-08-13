@@ -131,9 +131,8 @@ class ChangeSortState extends FlxSubState {
 				coins.remove(c);
 
 				if (coins.length == 0) {
-					// TODO: Done with customer, report back somehow
-					returnState.dismissCustomer();
 					close();
+					returnState.dismissTicket();
 				}
 			// } else {
 			} else if (c.y > bins[0].y - c.height) {

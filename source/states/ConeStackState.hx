@@ -116,7 +116,8 @@ class ConeStackState extends FlxSubState {
 		trace("RATING PENDING");
 		Timer.delay(()-> {
 			close();
-			returnState.openSubState(new ChangeSortState(returnState, 4));
+			returnState.dismissCustomer(4);
+			// returnState.openSubState(new ChangeSortState(returnState, 4));
 		}, 2000);
 	}
 

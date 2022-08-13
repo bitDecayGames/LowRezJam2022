@@ -1,5 +1,7 @@
 package states;
 
+import spacial.Cardinal;
+import spacial.Queue;
 import entities.OrderTicket;
 import orders.OrderType;
 import flixel.addons.effects.FlxClothSprite;
@@ -35,7 +37,7 @@ class TruckState extends FlxTransitionableState {
 	// for render order
 	var tickets:FlxTypedGroup<FlxSprite> = new FlxTypedGroup<FlxSprite>();
 	// for position managment
-	var ticketQueue:Array<OrderTicket> = [];
+	var tickQueue:Queue;
 
 	var truck:FlxSprite;
 	var heatOverlay:FlxSprite;
@@ -52,22 +54,13 @@ class TruckState extends FlxTransitionableState {
 	// The valid spots customers may go to start an order
 	var counterSpace = FlxRect.get(6, 39, 50-13, 7);
 
-	// TODO: Might need to tweak these a tiny bit
-	var lineCoords = [
-		0 => 2,
-		1 => 15,
-		2 => 28,
-		3 => 41,
-	];
-
-	var lineBaseY = 42;
 	var customerSpacing = 6;
 	var lineCount = 4;
-	var lineCustomers:Map<Int, Array<Customer>> = [
-		0 => [],
-		1 => [],
-		2 => [],
-		3 => [],
+	var lineCustomers:Map<Int, Queue> = [
+		0 => new Queue(FlxPoint.get(2, 42), Cardinal.N, 6, 2, 1),
+		1 => new Queue(FlxPoint.get(15, 42), Cardinal.N, 6, 2, 1),
+		2 => new Queue(FlxPoint.get(28, 42), Cardinal.N, 6, 2, 1),
+		3 => new Queue(FlxPoint.get(41, 42), Cardinal.N, 6, 2, 1),
 	];
 	var lineDepths:Map<Int, Int> = [
 		0 => 0,
@@ -79,7 +72,8 @@ class TruckState extends FlxTransitionableState {
 	// 0 = perfect, 1 = game over
 	var temperature = 0.30;
 
-	var ticketTest:FlxSprite;
+	public var coinsSinceLastRegister = 0;
+	var moneyTicket:OrderTicket = null;
 
 	public function new() {
 		super();
@@ -123,6 +117,9 @@ class TruckState extends FlxTransitionableState {
 		customerTimer.start(5, spawnCustomer, 0);
 
 		add(tickets);
+		tickQueue = new Queue(FlxPoint.get(0, 1), Cardinal.E, 13);
+		tickQueue.verticalVariance = 0;
+		tickQueue.horizontalVariace = 1;
 
 		// Add cursor last so it is on top
 		add(new ArrowCursor());
@@ -158,17 +155,6 @@ class TruckState extends FlxTransitionableState {
 		redMercuryLevel.offset.y = -redMercuryLevel.height/2;
 		heatOverlay.alpha = FlxMath.lerp(0, .85, temperature);
 
-		for (c in customers) {
-			if (c.linePosition > 0) {
-				if (c.settled && lineCustomers[c.lineNum][c.linePosition - 1] == null) {
-					lineCustomers[c.lineNum][c.linePosition] = null;
-					c.linePosition--;
-					lineCustomers[c.lineNum][c.linePosition] = c;
-					moveCustomerToPosition(c);
-				}
-			}
-		}
-
 		customers.sort(FlxSort.byY);
 	}
 
@@ -176,19 +162,34 @@ class TruckState extends FlxTransitionableState {
 		var custLine = FlxG.random.int(0, lineCount-1);
 		var cust = new Customer();
 		cust.lineNum = custLine;
-		cust.linePosition = lineDepths[custLine];
-		cust.spacingVariance = FlxG.random.int(0, 2) - 1;
 
-		var orderType = FlxG.random.bool() ? OrderType.SCOOP : OrderType.POPSICLE;
+		var orderType = getRandomOrderType();
+		var ticket = makeTicket(orderType, cust);
+		cust.ticket = ticket;
+
+		cust.enableMouseClicks(true, true);
+
+		lineCustomers[custLine].push(cust, function (position:Int) {
+			cust.settled = true;
+			cust.linePosition = position;
+			if (position == 0) {
+				// TODO: Ring bell SFX
+				tickets.add(cust.ticket);
+				tickQueue.push(cust.ticket);
+			}
+		});
+
+		customers.add(cust);
+	}
+
+	function makeTicket(orderType:OrderType, cust:Customer):OrderTicket {
 		var ticket = new OrderTicket(orderType, cust);
 		ticket.x = FlxG.width;
 		ticket.y = 1;
 
-		cust.ticket = ticket;
-
 		ticket.enableMouseClicks(true, true);
 		ticket.mousePressedCallback = function(spr:FlxExtendedSprite, x:Int, y:Int) {
-			if (!cust.settled) {
+			if (cust != null && !cust.settled) {
 				// only handle clicks if they are settled
 				return;
 			}
@@ -199,86 +200,30 @@ class TruckState extends FlxTransitionableState {
 			openSubState(ticket.getOrderState(this));
 		}
 
-		cust.enableMouseClicks(true, true);
-		// cust.mousePressedCallback = function(spr:FlxExtendedSprite, x:Int, y:Int) {
-		// 	if (!cust.settled) {
-		// 		// only handle clicks if they are settled
-		// 		return;
-		// 	}
+		tickets.add(ticket);
 
-		// 	activeCustomer = cust;
+		return ticket;
+	}
 
-		// 	// TODO: Need a transition here of some sort (swipe out?)
-		// 	openSubState(ticket.getOrderState(this));
-
-		// 	// TODO: This has a bug where the indices get jacked and customers will move UP before getting into the proper position
-		// 	// in line. This has to be because of how we are managing our arrays
-		// 	lineCustomers[cust.lineNum][cust.linePosition] = null;
-		// 	lineDepths[custLine]--;
-		// }
-
-		moveCustomerToPosition(cust);
-
-		if (lineDepths[custLine] < cust.linePosition) {
-			lineCustomers[custLine].push(cust);
-		} else {
-			lineCustomers[custLine].insert(cust.linePosition, cust);
+	public function dismissCustomer(coinCount:Int) {
+		coinsSinceLastRegister += coinCount;
+		if (coinsSinceLastRegister > 0 && moneyTicket == null) {
+			var moneyJob = makeTicket(OrderType.MONEY, null);
+			moneyTicket = moneyJob;
+			tickQueue.push(moneyTicket);
 		}
-		lineDepths[custLine]++;
 
-		customers.add(cust);
-
-		ticketTest = new FlxSprite(FlxG.width, 1, AssetPaths.scoops_ticket__png);
-		// ticketTest.meshVelocity.set(0, 100);
-		tickets.add(ticketTest);
-	}
-
-	function moveTicketToPosition(ticket:OrderTicket) {
-		ticket.settled = false;
-		var position = ticketQueue.indexOf(ticket);
-		var variance = FlxG.random.int(0, 2) - 2;
-
-		var target = FlxPoint.get(position * 13 + variance, 1);
-
-		FlxTween.linearPath(ticket, [FlxPoint.get(ticket.x, ticket.y), FlxPoint.get(target.x, ticket.y), FlxPoint.get(target.x, target.y)], 100, false, {
-			onComplete: function (t) {
-				ticket.settled = true;
-			}
-		});
-	}
-
-	function moveCustomerToPosition(cust:Customer, onMoveComplete:()->Void=null) {
-		cust.settled = false;
-		var variance = FlxG.random.int(0, 4) - 2;
-		var target = FlxPoint.get(lineCoords[cust.lineNum] + variance, lineBaseY - cust.linePosition * customerSpacing + cust.spacingVariance);
-
-		FlxTween.linearPath(cust, [FlxPoint.get(cust.x, cust.y), FlxPoint.get(target.x, cust.y), FlxPoint.get(target.x, target.y)], 40, false, {
-			onComplete: function (t) {
-				cust.settled = true;
-				if (cust.linePosition == 0) {
-					// TODO: Ring bell SFX
-					tickets.add(cust.ticket);
-					ticketQueue.push(cust.ticket);
-
-					moveTicketToPosition(cust.ticket);
-				}
-			}
-		});
-	}
-
-	public function dismissCustomer() {
 		if (activeTicket == null) {
 			return;
 		}
 
-		var ticketPosition = ticketQueue.indexOf(activeTicket);
-		ticketQueue.remove(activeTicket);
-
 		// keep a temp reference and clear out our active ticket
 		var ticket = activeTicket;
-		activeTicket = null;
+
+		dismissTicket();
 
 		var cust = ticket.orderingCustomer;
+		lineCustomers[cust.lineNum].remove(cust);
 
 		var exitXCoord = cust.lineNum <= 2 ? -20 : FlxG.width;
 		if (cust.lineNum == 2 && FlxG.random.bool()) {
@@ -289,17 +234,36 @@ class TruckState extends FlxTransitionableState {
 				cust.kill();
 			}
 		});
+	}
 
-		// move all of our tickets behind this one up
-		for (t in ticketPosition...ticketQueue.length) {
-			moveTicketToPosition(ticketQueue[t]);
+	public function dismissTicket() {
+		if (activeTicket == null) {
+			trace("attempted to dismiss null activeTicket");
+			return;
+		}
+
+		var ticket = activeTicket;
+		tickQueue.remove(ticket);
+
+		if (ticket.type == OrderType.MONEY) {
+			moneyTicket = null;
+			coinsSinceLastRegister = 0;
 		}
 
 		FlxTween.linearPath(ticket, [FlxPoint.get(ticket.x, ticket.y), FlxPoint.get(-ticket.width, ticket.y)], 100, false, {
 			onComplete: function (t) {
 				ticket.kill();
+				tickets.remove(ticket);
 			}
 		});
+
+		activeTicket = null;
+
+	}
+
+	function getRandomOrderType():OrderType {
+		var orders = [ OrderType.SCOOP, OrderType.POPSICLE, OrderType.SODA ];
+		return orders[FlxG.random.int(0, orders.length-1)];
 	}
 
 	override public function onFocusLost() {
