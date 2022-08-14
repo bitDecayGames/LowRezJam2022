@@ -15,6 +15,8 @@ class SodaPourState extends FlxSubState {
 	var gusher:FlxSprite;
 	var fillLever:FlxSprite;
 	var sodaCup:FlxSprite;
+
+	var intendingToPour = false;
 	var pourSoda = false;
 
 	// 1/(seconds to fill). Ex: .33 = 3 seconds to fill cup
@@ -91,6 +93,7 @@ class SodaPourState extends FlxSubState {
 		super.update(elapsed);
 
 		if (FlxG.mouse.pressed || FlxG.mouse.justPressed) {
+			intendingToPour = true;
 			if (FlxG.mouse.justPressed) {
 				trace('just pressed and current anim is ${fillLever.animation.name}/${fillLever.animation.curAnim.curFrame}');
 				trace('setting press anim to play starting on frame ${3 - fillLever.animation.frameIndex}');
@@ -98,6 +101,7 @@ class SodaPourState extends FlxSubState {
 			}
 			sodaCup.x = frameCupOffsets[fillLever.animation.frameIndex];
 		} else {
+			intendingToPour = false;
 			pourSoda = false;
 			if (FlxG.mouse.justReleased) {
 				trace('just released and current anim is ${fillLever.animation.name}/${fillLever.animation.curAnim.curFrame}');
@@ -108,10 +112,12 @@ class SodaPourState extends FlxSubState {
 			sodaCup.x = frameCupOffsets[3 - fillLever.animation.curAnim.curFrame];
 		}
 
-		if (pourSoda) {
+		if (intendingToPour) {
 			waitingForFinish = true;
 			finishTimer = 0;
+		}
 
+		if (pourSoda) {
 			gusher.alpha = 1;
 			fillPercent += fillRate * elapsed;
 			if (fillPercent > 1.0) {
