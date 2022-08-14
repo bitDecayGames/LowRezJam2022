@@ -42,11 +42,6 @@ class Main extends Sprite {
 		}
 		#end
 
-
-		// Set up basic transitions. To override these see `transOut` and `transIn` on any FlxTransitionable states
-		FlxTransitionableState.defaultTransIn = new TransitionData(FADE, FlxColor.BLACK, 2);
-		FlxTransitionableState.defaultTransOut = new TransitionData(FADE, FlxColor.BLACK, 2);
-
 		addChild(new FlxGame(64, 64, startingState, 1, 60, 60, true, false));
 
 		FlxG.game.setFilters([new ShaderFilter(new FlxShader())]);
@@ -69,6 +64,10 @@ class Main extends Sprite {
 
 		FlxG.mouse.useSystemCursor = Configure.config.mouse.useSystemCursor;
 		FlxG.mouse.visible = Configure.config.mouse.cursorVisible;
+
+		// Set up basic transitions. To override these see `transOut` and `transIn` on any FlxTransitionable states
+		FlxTransitionableState.defaultTransIn = new TransitionData(FADE, FlxColor.BLACK, 1);
+		FlxTransitionableState.defaultTransOut = new TransitionData(FADE, FlxColor.BLACK, 1);
 
 		FlxTextFactory.defaultFont = AssetPaths.Brain_Slab_8__ttf;
 	}

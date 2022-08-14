@@ -1,5 +1,8 @@
 package states;
 
+import flixel.math.FlxPoint;
+import flixel.addons.transition.TransitionData;
+import flixel.addons.transition.FlxTransitionableState;
 import flixel.FlxState;
 import flixel.addons.effects.chainable.FlxRainbowEffect;
 import flixel.addons.effects.chainable.FlxEffectSprite;
@@ -14,7 +17,7 @@ import haxefmod.flixel.FmodFlxUtilities;
 
 using extensions.FlxStateExt;
 
-class MainMenuState extends FlxState {
+class MainMenuState extends FlxTransitionableState {
 	var _btnPlay:FlxButton;
 	var _btnCredits:FlxButton;
 	var _btnExit:FlxButton;

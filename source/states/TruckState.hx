@@ -1,5 +1,9 @@
 package states;
 
+import flixel.addons.transition.FlxTransitionSprite.TransitionStatus;
+import flixel.addons.transition.TransitionTiles;
+import flixel.addons.transition.TransitionData;
+import flixel.addons.transition.Transition;
 import spacial.Cardinal;
 import spacial.Queue;
 import entities.OrderTicket;
@@ -123,6 +127,39 @@ class TruckState extends FlxTransitionableState {
 
 		// Add cursor last so it is on top
 		add(new ArrowCursor());
+
+		// transOut = new TransitionData(
+		// 	TransitionType.TILES,
+		// 	FlxColor.BLACK,
+		// 	2,
+		// 	FlxPoint.get(1, 0),
+		// 	{
+		// 		asset: AssetPaths.bitDecay__png,
+		// 		width: 8,
+		// 		height: 8
+		// 	}
+		// );
+
+		transOut = new TransitionData(
+			TransitionType.FADE,
+			FlxColor.WHITE,
+			0.2,
+			FlxPoint.get(0, 1)
+		);
+
+		// TODO: Figure out tile transitions
+		// transOut = new TransitionData(
+		// 	TransitionType.TILES,
+		// 	FlxColor.PINK,
+		// 	2,
+		// 	FlxPoint.get(1, 0),
+		// 	{
+		// 		asset: AssetPaths.bitDecay__png,
+		// 		width: 8,
+		// 		height: 8,
+		// 		frameRate: 2
+		// 	}
+		// );
 	}
 
 	#if temp_test
@@ -197,7 +234,27 @@ class TruckState extends FlxTransitionableState {
 			activeTicket = ticket;
 
 			// TODO: Need a transition here of some sort (swipe out?)
-			openSubState(ticket.getOrderState(this));
+			// var trans = new Transition(
+			// 	new TransitionData(
+			// 		TransitionType.TILES,
+			// 		FlxColor.BLACK,
+			// 		2,
+			// 		FlxPoint.get(1, 0),
+			// 		{
+			// 			asset: AssetPaths.bitDecay__png,
+			// 			width: 8,
+			// 			height: 8
+			// 		}
+			// 	)
+			// );
+			// trans.closeCallback = function() {
+			// 	openSubState(ticket.getOrderState(this));
+			// };
+			// openSubState(trans);
+			transitionOut(function() {
+				openSubState(ticket.getOrderState(this));
+				// transitionIn();
+			});
 		}
 
 		tickets.add(ticket);
