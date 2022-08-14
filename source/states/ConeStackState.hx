@@ -1,5 +1,6 @@
 package states;
 
+import flixel.util.FlxAxes;
 import entities.games.conestack.IceCreamBall;
 import haxe.Timer;
 import flixel.FlxSubState;
@@ -27,6 +28,8 @@ class ConeStackState extends FlxSubState {
 	var hand:FlxSprite;
 	var scoop:FlxSprite;
 	var iceCreamBall:IceCreamBall;
+	var iceCreamGravity = 300;
+
 	var coneTween:FlxTween;
 
 	var dropTriggered = false;
@@ -61,11 +64,13 @@ class ConeStackState extends FlxSubState {
 			coneTween = FlxTween.linearPath(cone, [
 				new FlxPoint(0, FlxG.height - cone.height),
 				new FlxPoint(FlxG.width-cone.width - 2, FlxG.height - cone.height)
-			], FlxG.random.float(1, 3), true, {
+			], FlxG.random.float(.75, 1.5), true, {
 				type: FlxTweenType.ONESHOT,
-				ease: FlxEase.sineInOut,
+				ease: FlxEase.quadIn,
 				onComplete: function(t:FlxTween) {
 					rateCone();
+					FlxG.camera.shake(0.1, 0.05, FlxAxes.X);
+					// TODO: Slap SFX
 				}
 			});
 			FlxTween.globalManager.update(0);
@@ -95,7 +100,7 @@ class ConeStackState extends FlxSubState {
 			dropTriggered = true;
 			iceCreamBall.fall();
 			scoop.animation.play('flip');
-			iceCreamBall.acceleration.y = 120;
+			iceCreamBall.acceleration.y = iceCreamGravity;
 		}
 
 		if (!iceCreamBall.plopped) {
@@ -103,7 +108,10 @@ class ConeStackState extends FlxSubState {
 				attachPointX = Math.round(cone.x - iceCreamBall.x);
 				iceCreamBall.velocity.set(0, 0);
 				iceCreamBall.acceleration.set(0, 0);
-				iceCreamBall.plop(cone);
+				var accuracyPercentage = iceCreamBall.plop(cone);
+
+				// TODO: Slap SFX For ice cream hitting cone. Maybe different depending on how centered?
+				FlxG.camera.shake(0.1, 0.05, FlxAxes.Y);
 			}
 		}
 
@@ -115,10 +123,11 @@ class ConeStackState extends FlxSubState {
 	function rateCone() {
 		trace("RATING PENDING");
 		Timer.delay(()-> {
+			// TODO: Play SFX
 			close();
 			returnState.dismissCustomer(4);
 			// returnState.openSubState(new ChangeSortState(returnState, 4));
-		}, 2000);
+		}, 750);
 	}
 
 	override public function onFocusLost() {

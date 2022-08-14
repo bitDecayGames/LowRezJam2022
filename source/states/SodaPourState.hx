@@ -1,5 +1,6 @@
 package states;
 
+import flixel.util.FlxAxes;
 import flixel.math.FlxMath;
 import flixel.FlxSubState;
 import flixel.util.FlxColor;
@@ -15,6 +16,8 @@ class SodaPourState extends FlxSubState {
 	var gusher:FlxSprite;
 	var fillLever:FlxSprite;
 	var sodaCup:FlxSprite;
+	var fillStartAgressionFPS = 120;
+	var fillStopAgressionFPS = 15;
 
 	var intendingToPour = false;
 	var pourSoda = false;
@@ -40,13 +43,14 @@ class SodaPourState extends FlxSubState {
 
 		fillLever = new FlxSprite();
 		fillLever.loadGraphic(AssetPaths.activatorArm__png, true, 64, 64);
-		fillLever.animation.add("press", [0, 1, 2, 3], 15, false);
-		fillLever.animation.add("release", [3, 2, 1, 0], 15, false);
+		fillLever.animation.add("press", [0, 1, 2, 3], fillStartAgressionFPS, false);
+		fillLever.animation.add("release", [3, 2, 1, 0], fillStopAgressionFPS, false);
 		fillLever.animation.play("release", true, 3);
 		fillLever.animation.finishCallback = function(name:String) {
 			if (name == "press") {
 				// press finished, start filling
 				pourSoda = true;
+				FlxG.camera.shake(0.1, 0.05, FlxAxes.X);
 			}
 		};
 		add(fillLever);

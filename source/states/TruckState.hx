@@ -1,5 +1,6 @@
 package states;
 
+import haxe.Timer;
 import flixel.addons.transition.FlxTransitionSprite.TransitionStatus;
 import flixel.addons.transition.TransitionTiles;
 import flixel.addons.transition.TransitionData;
@@ -126,7 +127,9 @@ class TruckState extends FlxTransitionableState {
 		tickQueue.horizontalVariace = 1;
 
 		// Add cursor last so it is on top
-		add(new ArrowCursor());
+		var cursor = new ArrowCursor();
+		cursor.alpha = 0;
+		add(cursor);
 
 		// transOut = new TransitionData(
 		// 	TransitionType.TILES,
@@ -160,6 +163,11 @@ class TruckState extends FlxTransitionableState {
 		// 		frameRate: 2
 		// 	}
 		// );
+
+		Timer.delay(function() {
+			// TODO: Play "warping in SFX" for the cursor appearing
+			FlxTween.tween(cursor, { alpha: 1 }, .75);
+		}, Std.int(transIn.duration * 1000));
 	}
 
 	#if temp_test
