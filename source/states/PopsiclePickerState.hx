@@ -1,5 +1,6 @@
 package states;
 
+import flixel.math.FlxMath;
 import entities.HandGrabCursor;
 import flixel.tweens.FlxEase;
 import flixel.math.FlxPoint;
@@ -18,6 +19,9 @@ using extensions.FlxObjectExt;
 class PopsiclePickerState extends FlxSubState {
 
 	var returnState:TruckState;
+
+	var timeToFind = 0.0;
+	var attempts = 0;
 
 	var popsicles = [
 		AssetPaths.greenOtter__png,
@@ -106,9 +110,23 @@ class PopsiclePickerState extends FlxSubState {
 
 		// Collide with hand, check if type is correct
 		if (FlxG.overlap(c, hand)) {
+			attempts++;
+
 			if (popsicle.asset == popsicles[desired]) {
 				close();
-				returnState.dismissCustomer(3);
+
+				var span = 6.0;
+				var goldRating = 2.0;
+
+				// 2 second penalty for each wrong guess after the first
+				timeToFind += 2 * (attempts - 1);
+
+				timeToFind = FlxMath.bound(timeToFind, goldRating, goldRating + span);
+
+				// invert timeToFind and divide by span to get rating from 0.0-1.0
+				var rating = (span - (timeToFind - goldRating)) / span;
+
+				returnState.dismissCustomer(3, rating);
 				// returnState.openSubState(new ChangeSortState(returnState, 3));
 			} else {
 				// WRONG. throw it back
@@ -153,6 +171,8 @@ class PopsiclePickerState extends FlxSubState {
 
 	override public function update(elapsed:Float) {
 		super.update(elapsed);
+
+		timeToFind += elapsed;
 	}
 
 	override public function onFocusLost() {

@@ -282,7 +282,7 @@ class TruckState extends FlxTransitionableState {
 		return ticket;
 	}
 
-	public function dismissCustomer(coinCount:Int) {
+	public function dismissCustomer(coinCount:Int, rating:Float) {
 		coinsSinceLastRegister += coinCount;
 		if (coinsSinceLastRegister > 0 && moneyTicket == null) {
 			var moneyJob = makeTicket(OrderType.MONEY, null);
@@ -302,7 +302,7 @@ class TruckState extends FlxTransitionableState {
 		var cust = ticket.orderingCustomer;
 		lineCustomers[cust.lineNum].remove(cust);
 
-		add(new Reaction(cust, FlxG.random.float()));
+		add(new Reaction(cust, rating));
 
 		var exitXCoord = cust.lineNum <= 2 ? -20 : FlxG.width;
 		if (cust.lineNum == 2 && FlxG.random.bool()) {

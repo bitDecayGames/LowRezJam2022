@@ -140,7 +140,8 @@ class SodaPourState extends FlxSubState {
 				if (finishTimer >= finishThreshold) {
 					// TODO: rate the soda level and next game
 					close();
-					returnState.dismissCustomer(1);
+					var distanceFromPerfect = Math.abs(1 - fillPercent);
+					returnState.dismissCustomer(1, FlxMath.bound(1 - distanceFromPerfect, 0, 1));
 					// returnState.openSubState(new ChangeSortState(returnState, 1));
 				}
 			}

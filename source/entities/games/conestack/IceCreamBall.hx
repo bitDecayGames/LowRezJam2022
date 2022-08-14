@@ -40,18 +40,21 @@ class IceCreamBall extends FlxSprite {
 		// This is to align the plop with the initial ball of ice cream
 		// y += 3;
 
-		var accuracyPercent = (this.getMidpoint().x - against.getMidpoint().x) / width;
-		trace('raw accuracy: ${accuracyPercent}');
+		// starts off as half-accuracy (up to 0.5 in either direction)
+		var accuracy = (this.getMidpoint().x - against.getMidpoint().x) / width;
+		trace('raw accuracy: ${accuracy}');
 		// accuracy /= .5; // normalize to [-1,1]
 		// trace('percentage normalized: ${accuracy}');
-		var accuracy = accuracyPercent * 2;
+
+		// Multiply by 2 to get into 0 - 1 range
+		accuracy = accuracy * 2;
 		trace('frame adj accuracy: ${accuracy}');
 
-		accuracy += 2;
-		trace('frame: ${accuracy}');
+		var frameMathAccuracy = accuracy + 2;
+		trace('frame: ${frameMathAccuracy}');
 
 
-		var plopFrame = Math.round(accuracy);
+		var plopFrame = Math.round(frameMathAccuracy);
 		trace('plopFrame: ${plopFrame}');
 
 		var plopGfx = switch (flavor) {
@@ -68,6 +71,6 @@ class IceCreamBall extends FlxSprite {
 
 		animation.add('plop', [for (i in 0...5) i], 0);
 		animation.play('plop', plopFrame);
-		return accuracyPercent;
+		return FlxMath.bound(1 - Math.abs(accuracy), 0, 1);
 	}
 }

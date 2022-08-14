@@ -40,6 +40,8 @@ class ConeStackState extends FlxSubState {
 
 	var attachPointX = -1.0;
 
+	var accuracyPercentage = 0.0;
+
 	public function new(returnState:TruckState, flavor:IceCreamFlavor) {
 		super();
 
@@ -109,7 +111,7 @@ class ConeStackState extends FlxSubState {
 				attachPointX = Math.round(cone.x - iceCreamBall.x);
 				iceCreamBall.velocity.set(0, 0);
 				iceCreamBall.acceleration.set(0, 0);
-				var accuracyPercentage = iceCreamBall.plop(cone);
+				accuracyPercentage = Math.abs(iceCreamBall.plop(cone));
 
 				// TODO: Slap SFX For ice cream hitting cone. Maybe different depending on how centered?
 				FlxG.camera.shake(Constants.SHAKE_AMOUNT, 0.05, FlxAxes.Y);
@@ -126,7 +128,7 @@ class ConeStackState extends FlxSubState {
 		Timer.delay(()-> {
 			// TODO: Play SFX
 			close();
-			returnState.dismissCustomer(4);
+			returnState.dismissCustomer(4, accuracyPercentage);
 			// returnState.openSubState(new ChangeSortState(returnState, 4));
 		}, 750);
 	}
