@@ -1,5 +1,8 @@
 package states;
 
+import flixel.FlxObject;
+import flixel.addons.effects.chainable.FlxTrailEffect;
+import flixel.addons.effects.chainable.FlxEffectSprite;
 import haxe.Timer;
 import flixel.addons.transition.FlxTransitionSprite.TransitionStatus;
 import flixel.addons.transition.TransitionTiles;
@@ -28,6 +31,7 @@ import flixel.util.FlxColor;
 import achievements.Achievements;
 import flixel.addons.transition.FlxTransitionableState;
 import entities.ArrowCursor;
+import entities.Reaction;
 
 import flixel.FlxSprite;
 import flixel.FlxG;
@@ -80,6 +84,9 @@ class TruckState extends FlxTransitionableState {
 	public var coinsSinceLastRegister = 0;
 	var moneyTicket:OrderTicket = null;
 
+	// just things we need the position rounded on for clean rendering
+	var rounders:Array<FlxObject> = [];
+
 	public function new() {
 		super();
 
@@ -108,7 +115,7 @@ class TruckState extends FlxTransitionableState {
 		heatOverlay.alpha = 0;
 		add(heatOverlay);
 
-		truck = new FlxSprite(AssetPaths.truck_layout_bg__png);
+		truck = new FlxSprite(-2, -2, AssetPaths.truck_layout_bg__png);
 		add(truck);
 
 		redMercuryLevel = new FlxSprite(56 + 3, 13 + 21);
@@ -167,7 +174,7 @@ class TruckState extends FlxTransitionableState {
 		Timer.delay(function() {
 			// TODO: Play "warping in SFX" for the cursor appearing
 			FlxTween.tween(cursor, { alpha: 1 }, .75);
-		}, Std.int(transIn.duration * 1000));
+		}, Std.int(2000));
 	}
 
 	#if temp_test
@@ -201,6 +208,11 @@ class TruckState extends FlxTransitionableState {
 		heatOverlay.alpha = FlxMath.lerp(0, .85, temperature);
 
 		customers.sort(FlxSort.byY);
+
+		for (r in rounders) {
+			r.x = Math.floor(r.x);
+			r.y = Math.floor(r.y);
+		}
 	}
 
 	function spawnCustomer(timer:FlxTimer) {
@@ -290,6 +302,8 @@ class TruckState extends FlxTransitionableState {
 		var cust = ticket.orderingCustomer;
 		lineCustomers[cust.lineNum].remove(cust);
 
+		add(new Reaction(cust, FlxG.random.float()));
+
 		var exitXCoord = cust.lineNum <= 2 ? -20 : FlxG.width;
 		if (cust.lineNum == 2 && FlxG.random.bool()) {
 			exitXCoord = FlxG.width;
@@ -299,6 +313,51 @@ class TruckState extends FlxTransitionableState {
 				cust.kill();
 			}
 		});
+
+		var chillEffect = new FlxSprite(ticket.orderingCustomer.getMidpoint().x, ticket.orderingCustomer.y);
+		chillEffect.makeGraphic(7, 7, FlxColor.CYAN);
+		chillEffect.loadGraphic(AssetPaths.sparkle__png, true, 7, 7);
+		chillEffect.animation.add("sparkle", [ for (i in 0...6) i ], 7);
+		chillEffect.animation.play("sparkle");
+		add(chillEffect);
+
+		var fxSprite = new FlxEffectSprite(chillEffect);
+		fxSprite.setPosition(chillEffect.x, chillEffect.y);
+		var trail = new FlxTrailEffect(fxSprite, 5, 0.9, 2);
+		fxSprite.effects = [ trail ];
+		add(fxSprite);
+		rounders.push(fxSprite);
+
+		var intermediate = FlxPoint.get(0, 0);
+		FlxTween.quadPath(
+			chillEffect,
+			[
+				chillEffect.getPosition(),
+				intermediate,
+				thermometer.getPosition().add(0, thermometer.height - 8)
+			],
+			.75,
+			{
+				ease: FlxEase.sineIn,
+			});
+		FlxTween.quadPath(
+			fxSprite,
+			[
+				fxSprite.getPosition(),
+				intermediate,
+				thermometer.getPosition().add(0, thermometer.height - 8)
+			],
+			.75,
+			{
+				ease: FlxEase.sineIn,
+				onComplete: function (t) {
+					// TODO: Play cooling SFX
+					temperature = FlxMath.bound(temperature - .1, 0, 1);
+					chillEffect.setPosition(-20, 0);
+					fxSprite.setPosition(-20, 0);
+					rounders.remove(fxSprite);
+				}
+			});
 	}
 
 	public function dismissTicket() {
@@ -323,7 +382,6 @@ class TruckState extends FlxTransitionableState {
 		});
 
 		activeTicket = null;
-
 	}
 
 	function getRandomOrderType():OrderType {

@@ -1,5 +1,6 @@
 package states;
 
+import misc.Constants;
 import flixel.util.FlxAxes;
 import entities.games.conestack.IceCreamBall;
 import haxe.Timer;
@@ -69,7 +70,7 @@ class ConeStackState extends FlxSubState {
 				ease: FlxEase.quadIn,
 				onComplete: function(t:FlxTween) {
 					rateCone();
-					FlxG.camera.shake(0.1, 0.05, FlxAxes.X);
+					FlxG.camera.shake(Constants.SHAKE_AMOUNT, 0.05, FlxAxes.X);
 					// TODO: Slap SFX
 				}
 			});
@@ -111,7 +112,7 @@ class ConeStackState extends FlxSubState {
 				var accuracyPercentage = iceCreamBall.plop(cone);
 
 				// TODO: Slap SFX For ice cream hitting cone. Maybe different depending on how centered?
-				FlxG.camera.shake(0.1, 0.05, FlxAxes.Y);
+				FlxG.camera.shake(Constants.SHAKE_AMOUNT, 0.05, FlxAxes.Y);
 			}
 		}
 

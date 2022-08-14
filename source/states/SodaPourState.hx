@@ -1,5 +1,6 @@
 package states;
 
+import misc.Constants;
 import flixel.util.FlxAxes;
 import flixel.math.FlxMath;
 import flixel.FlxSubState;
@@ -50,7 +51,7 @@ class SodaPourState extends FlxSubState {
 			if (name == "press") {
 				// press finished, start filling
 				pourSoda = true;
-				FlxG.camera.shake(0.1, 0.05, FlxAxes.X);
+				FlxG.camera.shake(Constants.SHAKE_AMOUNT, 0.1, FlxAxes.X);
 			}
 		};
 		add(fillLever);
