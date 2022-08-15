@@ -30,7 +30,7 @@ class MainMenuState extends FlxTransitionableState {
 	override public function create():Void {
 		super.create();
 
-		FmodManager.PlaySong(FmodSongs.LetsGo);
+		FmodManager.PlaySong(FmodSongs.title);
 		bgColor = FlxColor.TRANSPARENT;
 		FlxG.camera.pixelPerfectRender = true;
 
@@ -80,7 +80,7 @@ class MainMenuState extends FlxTransitionableState {
 		// }, FlxColor.GRAY);
 		// openSubState(swirlOut);
 		transitioning = true;
-		FmodFlxUtilities.TransitionToStateAndStopMusic(new TruckState());
+		FmodFlxUtilities.TransitionToState(new TruckState());
 	}
 
 	function clickCredits():Void {

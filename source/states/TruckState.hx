@@ -40,6 +40,9 @@ using extensions.FlxStateExt;
 
 class TruckState extends FlxTransitionableState {
 
+	public static var CustomersServed = 0;
+
+	var cursor:FlxSprite;
 	var bg:FlxSprite;
 	var customers:FlxTypedGroup<Customer> = new FlxTypedGroup<Customer>();
 
@@ -78,10 +81,11 @@ class TruckState extends FlxTransitionableState {
 		3 => 0,
 	];
 
+	var heatingBegun = false;
 	// 0 = perfect, 1 = game over
-	var temperature = 0.30;
+	var temperature = 0.0;
 
-	var backgroundTempGrowth = 1 / 20.0;
+	var backgroundTempGrowth = 1 / 40.0;
 	var baseCustomerCooling = .1;
 
 	public var coinsSinceLastRegister = 0;
@@ -93,10 +97,8 @@ class TruckState extends FlxTransitionableState {
 	public function new() {
 		super();
 
-		// We will be opening other microgame states on top of this. Don't want to draw
-		// or update while those are being played
-		// .... or do we? probably do, actually
-		// persistentUpdate = false;
+		persistentUpdate = true;
+		persistentDraw = true;
 
 		#if isolate_games
 		persistentDraw = false;
@@ -105,6 +107,8 @@ class TruckState extends FlxTransitionableState {
 
 	override public function create() {
 		super.create();
+
+		CustomersServed = 0;
 
 		FlxG.camera.pixelPerfectRender = true;
 
@@ -139,7 +143,7 @@ class TruckState extends FlxTransitionableState {
 		tickQueue.horizontalVariace = 1;
 
 		// Add cursor last so it is on top
-		var cursor = new ArrowCursor();
+		cursor = new ArrowCursor();
 		cursor.alpha = 0;
 		add(cursor);
 
@@ -188,6 +192,7 @@ class TruckState extends FlxTransitionableState {
 
 	override public function update(elapsed:Float) {
 		super.update(elapsed);
+		FmodManager.Update();
 
 		#if temp_test
 		if (increasing) {
@@ -203,7 +208,14 @@ class TruckState extends FlxTransitionableState {
 		}
 		#end
 
-		temperature += backgroundTempGrowth * elapsed;
+		if (heatingBegun) {
+			temperature += backgroundTempGrowth * elapsed;
+		}
+
+		if (temperature >= 1.0) {
+			closeSubState();
+			FlxG.switchState(new ScoreState());
+		}
 
 
 		// this is some math because of how scale works
@@ -241,6 +253,8 @@ class TruckState extends FlxTransitionableState {
 				FmodManager.PlaySoundOneShot(FmodSFX.ding);
 				tickets.add(cust.ticket);
 				tickQueue.push(cust.ticket);
+
+				heatingBegun = true;
 			}
 		});
 
@@ -254,6 +268,10 @@ class TruckState extends FlxTransitionableState {
 
 		ticket.enableMouseClicks(true, true);
 		ticket.mousePressedCallback = function(spr:FlxExtendedSprite, x:Int, y:Int) {
+			if (cursor.alpha < 1) {
+				return;
+			}
+
 			if (cust != null && !cust.settled) {
 				// only handle clicks if they are settled
 				return;
@@ -281,6 +299,7 @@ class TruckState extends FlxTransitionableState {
 			// openSubState(trans);
 			FmodManager.PlaySoundOneShot(FmodSFX.transition);
 			transitionOut(function() {
+				cursor.alpha = 0;
 				openSubState(ticket.getOrderState(this));
 				// transitionIn();
 			});
@@ -331,9 +350,7 @@ class TruckState extends FlxTransitionableState {
 
 		spawnChillFX(cust, -baseCustomerCooling * rating);
 
-		if (rating > .85) {
-
-		}
+		CustomersServed++;
 	}
 
 	function spawnChillFX(cust:Customer, tempImpact:Float) {
@@ -385,10 +402,12 @@ class TruckState extends FlxTransitionableState {
 						chillEffect.kill();
 					}, 1000);
 				}
-			});
+			}
+		);
 	}
 
 	public function dismissTicket() {
+		cursor.alpha = 1;
 		if (activeTicket == null) {
 			trace("attempted to dismiss null activeTicket");
 			return;

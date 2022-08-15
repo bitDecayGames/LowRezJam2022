@@ -41,6 +41,8 @@ class PopsiclePickerState extends FlxSubState {
 	var childsChoice:FlxSprite;
 	var errorChoice:FlxSprite;
 
+	var freezerSoundID:String = "";
+
 	public function new(returnState:TruckState) {
 		super();
 
@@ -97,6 +99,8 @@ class PopsiclePickerState extends FlxSubState {
 
 		// Add cursor last so it is on top
 		add(new HandGrabCursor());
+
+		freezerSoundID = FmodManager.PlaySoundWithReference(FmodSFX.freezerAmbience);
 	}
 
 	function sicleDrag(c:FlxExtendedSprite, x:Int, y:Int) {
@@ -113,6 +117,11 @@ class PopsiclePickerState extends FlxSubState {
 			attempts++;
 
 			if (popsicle.asset == popsicles[desired]) {
+				if (FmodManager.IsSoundPlaying(freezerSoundID)) {
+					FmodManager.StopSound(freezerSoundID);
+				}
+				FmodManager.ReleaseSound(freezerSoundID);
+				FmodManager.PlaySoundOneShot(FmodSFX.freezerDoorShut);
 				close();
 
 				var span = 6.0;
