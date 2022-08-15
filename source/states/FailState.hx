@@ -1,5 +1,7 @@
 package states;
 
+import flixel.FlxSprite;
+import flixel.addons.transition.FlxTransitionableState;
 import flixel.FlxG;
 import flixel.addons.ui.FlxUIState;
 import flixel.text.FlxText;
@@ -11,30 +13,29 @@ import misc.FlxTextFactory;
 
 using extensions.FlxStateExt;
 
-class VictoryState extends FlxUIState {
-	var _btnDone:FlxButton;
+class FailState extends FlxTransitionableState {
 
-	var _txtTitle:FlxText;
+	var delay = 1.0;
 
 	override public function create():Void {
 		super.create();
-		bgColor = FlxColor.TRANSPARENT;
 
-		_txtTitle = FlxTextFactory.make("Game Over", FlxG.width / 2, FlxG.height / 4, 40, FlxTextAlign.CENTER);
-
-		add(_txtTitle);
-
-		_btnDone = UiHelpers.CreateMenuButton("Main Menu", clickMainMenu);
-		_btnDone.setPosition(FlxG.width / 2 - _btnDone.width / 2, FlxG.height - _btnDone.height - 40);
-		_btnDone.updateHitbox();
-		add(_btnDone);
+		var bg = new FlxSprite();
+		bg.loadGraphic(AssetPaths.gameOver__png, true, 64, 64);
+		bg.animation.add("play", [ for (i in 0...9) i ], 10);
+		bg.animation.play("play");
+		add(bg);
 	}
 
 	override public function update(elapsed:Float):Void {
 		super.update(elapsed);
 		FmodManager.Update();
 
-		_txtTitle.x = FlxG.width / 2 - _txtTitle.width / 2;
+		delay -= elapsed;
+
+		if (delay <= 0 && FlxG.mouse.justPressed) {
+			clickMainMenu();
+		}
 	}
 
 	function clickMainMenu():Void {

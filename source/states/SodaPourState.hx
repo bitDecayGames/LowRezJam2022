@@ -24,7 +24,7 @@ class SodaPourState extends FlxSubState {
 	var pourSoda = false;
 
 	// 1/(seconds to fill). Ex: .33 = 3 seconds to fill cup
-	var fillRate = 0.33;
+	var fillRate = FlxG.random.float(.33, 1);
 	var fillPercent = 0.0;
 
 	var fillingFrameCount = 0;
@@ -35,6 +35,8 @@ class SodaPourState extends FlxSubState {
 	var waitingForFinish = false;
 	var finishTimer = 0.0;
 	var finishThreshold = 1.0;
+
+	var sodaSoundID = "";
 
 	public function new(returnState:TruckState) {
 		super();
@@ -50,6 +52,7 @@ class SodaPourState extends FlxSubState {
 		fillLever.animation.finishCallback = function(name:String) {
 			if (name == "press") {
 				// press finished, start filling
+				FmodManager.PlaySoundOneShot(FmodSFX.leverOn);
 				pourSoda = true;
 				FlxG.camera.shake(Constants.SHAKE_AMOUNT, 0.1, FlxAxes.X);
 			}
@@ -123,6 +126,11 @@ class SodaPourState extends FlxSubState {
 		}
 
 		if (pourSoda) {
+			if (sodaSoundID == "") {
+				sodaSoundID = FmodManager.PlaySoundWithReference(FmodSFX.pour1);
+			} else {
+				FmodManager.UnpauseSound(sodaSoundID);
+			}
 			gusher.alpha = 1;
 			fillPercent += fillRate * elapsed;
 			if (fillPercent > 1.0) {
@@ -131,6 +139,9 @@ class SodaPourState extends FlxSubState {
 				}
 			}
 		} else {
+			if (sodaSoundID != "") {
+				FmodManager.PauseSound(sodaSoundID);
+			}
 			if (gusher.alpha != 0 && StringTools.startsWith(sodaCup.animation.name, "spilling")) {
 				sodaCup.animation.play("spilling_end");
 			}
@@ -139,6 +150,9 @@ class SodaPourState extends FlxSubState {
 				finishTimer += elapsed;
 				if (finishTimer >= finishThreshold) {
 					// TODO: rate the soda level and next game
+					if (sodaSoundID != "") {
+						FmodManager.ReleaseSound(sodaSoundID);
+					}
 					close();
 					var distanceFromPerfect = Math.abs(1 - fillPercent);
 					returnState.dismissCustomer(1, FlxMath.bound(1 - distanceFromPerfect, 0, 1));

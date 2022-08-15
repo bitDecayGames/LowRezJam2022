@@ -13,7 +13,7 @@
 	},
 	"mouse": {
 		"cursorVisible": false,
-		"useSystemCursor": false
+		"useSystemCursor": true
 	},
 	"menus": {
 		"mouseNavigation": true,

@@ -10,13 +10,13 @@ class HandGrabCursor extends FlxSprite {
 	private static inline var openAnim = "open";
 	private static inline var closedAnim = "closed";
 
-	private var mouseOffset = FlxPoint.get(-10, -11);
+	private var mouseOffset = FlxPoint.get(-6, -18);
 
 	private var tmp = FlxPoint.get();
 
 	public function new() {
 		super();
-		loadGraphic(AssetPaths.hand_icon__png, true, 20, 20);
+		loadGraphic(AssetPaths.pinch__png, true, 20, 20);
 		animation.add(openAnim, [0]);
 		animation.add(closedAnim, [1]);
 	}

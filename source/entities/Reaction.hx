@@ -1,5 +1,6 @@
 package entities;
 
+import flixel.FlxG;
 import flixel.FlxSprite;
 
 class Reaction extends FlxSprite {
@@ -14,6 +15,22 @@ class Reaction extends FlxSprite {
 		animation.add("face", [ for (i in 0...5) 4 - i ], 0, false);
 		trace('reaction forming based on rating of ${quality}');
 		animation.play("face", true, Std.int(quality * 5));
+	}
+
+	public function getRatingSFX():String {
+		trace('anim frame is ${animation.frameIndex}');
+		switch (animation.frameIndex) {
+			case 0:
+				return FmodSFX.delight;
+			case 1:
+				return FmodSFX.happy;
+			case 2:
+				return FmodSFX.mediocre;
+			case 3:
+				return FmodSFX.unhappy;
+			default:
+				return FmodSFX.disgust;
+		}
 	}
 
 	override public function update(delta:Float) {

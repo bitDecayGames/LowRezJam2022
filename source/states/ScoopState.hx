@@ -17,7 +17,7 @@ import flixel.FlxG;
 using extensions.FlxStateExt;
 
 class ScoopState extends FlxSubState {
-	var player:FlxSprite;
+	var desired:IceCreamFlavor;
 
 	var chocolate:FlxExtendedSprite;
 	var vanilla:FlxExtendedSprite;
@@ -25,8 +25,10 @@ class ScoopState extends FlxSubState {
 
 	var returnState:TruckState;
 
-	public function new(returnState:TruckState) {
+	public function new(returnState:TruckState, desired:IceCreamFlavor) {
 		super();
+
+		this.desired = desired;
 
 		this.returnState = returnState;
 		bgColor = FlxColor.fromRGB(30, 30, 30, 128);
@@ -70,7 +72,7 @@ class ScoopState extends FlxSubState {
 			trace('Ya dun clikd ${key}');
 			// TODO: Need a transition here of some sort (swipe out?)
 			close();
-			returnState.openSubState(new ConeStackState(returnState, key));
+			returnState.openSubState(new ConeStackState(returnState, key, desired == key));
 		}
 	}
 
