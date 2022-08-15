@@ -59,6 +59,17 @@ class ChangeSortState extends FlxSubState {
 
 	var returnState:TruckState;
 
+	var coinOffset = FlxPoint.get(Math.NEGATIVE_INFINITY, Math.NEGATIVE_INFINITY);
+
+	var coinConfigurations = [
+		[5, 0, 2, 2],
+		[0, 0, 0, 3],
+		[0, 1, 2, 2],
+		[0, 1, 7, 0],
+		[10, 1, 1, 2],
+		[0, 7, 4, 0],
+	];
+
 
 	public function new(returnState:TruckState, coinCount:Int) {
 		super();
@@ -68,20 +79,16 @@ class ChangeSortState extends FlxSubState {
 
 	override public function create() {
 		super.create();
-
 		FlxG.camera.pixelPerfectRender = true;
 
 		add(new FlxSprite(AssetPaths.register_bg__png));
-
 
 		makeBin(0);
 		makeBin(1);
 		makeBin(2);
 		makeBin(3);
 
-		for (i in 0...coinsToSpawn) {
-			makeCoin();
-		}
+		makeCoins(FlxG.random.getObject(coinConfigurations));
 
 		add(new HandGrabCursor());
 	}
@@ -99,36 +106,46 @@ class ChangeSortState extends FlxSubState {
 		bins[type] = bin;
 	}
 
-	function makeCoin() {
-		// TODO: Coins should scatter initially
-		var type = FlxG.random.int(0, 3);
-		trace("spawning coin of type: " + type);
-
-		var size = Std.int(coinSizes[type]);
-		var coin = new FlxExtendedSprite(
-			FlxG.random.int(0, Std.int(FlxG.width - size)),
-			FlxG.random.int(0, Std.int(bins[0].y - size)),
-			coinColors[type]
-		);
-		coin.enableMouseClicks(false, true);
-		coin.draggable = true;
-		coin.mouseStartDragCallback = coinDrag;
-		coin.mouseStopDragCallback = stopCoinDrag(type);
-		coins.push(coin);
-		add(coin);
+	function makeCoins(coinConfig:Array<Int>) {
+		for (type in 0...coinConfig.length) {
+			for (n in 0...coinConfig[type]) {
+				var size = Std.int(coinSizes[type]);
+				var coin = new FlxExtendedSprite(
+					FlxG.random.int(0, Std.int(FlxG.width - size)),
+					FlxG.random.int(0, Std.int(bins[0].y - size)),
+					coinColors[type]
+				);
+				coin.enableMouseClicks(false, true);
+				coin.enableMouseDrag(false, true);
+				// coin.draggable = true;
+				coin.mouseStartDragCallback = coinDrag;
+				coin.mouseStopDragCallback = stopCoinDrag(type);
+				coins.push(coin);
+				add(coin);
+			}
+		}
 	}
 
 	function coinDrag(c:FlxExtendedSprite, x:Int, y:Int) {
-		trace('being dragged');
-		c.x = x;
-		c.y = y;
+		// trace('being dragged');
+		// if (coinOffset.y == Math.NEGATIVE_INFINITY) {
+		// 	coinOffset.set(x - c.x, y - c.y);
+		// 	trace('given mouse x/y of (${x},${y})');
+		// 	trace('coinPosition of    (${c.x},${c.y})');
+		// 	trace('dragging with offset of: ${coinOffset}');
+		// }
+		// c.x = x + coinOffset.x;
+		// c.y = y + coinOffset.y;
 	}
 
 	function stopCoinDrag(type:Int) {
+		coinOffset.y = Math.NEGATIVE_INFINITY;
 		return function(c:FlxExtendedSprite, x:Int, y:Int) {
 			if (FlxG.overlap(c, bins[type])) {
 				c.kill();
 				coins.remove(c);
+
+				FmodManager.PlaySoundOneShot(FmodSFX.changebin);
 
 				if (coins.length == 0) {
 					close();

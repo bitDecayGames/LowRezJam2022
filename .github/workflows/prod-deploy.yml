@@ -27,6 +27,6 @@ jobs:
         with:
           dir: export/html5.zip
           itchUserName: bitdecaygames
-          itchGameName: lowrezjam2022
+          itchGameName: cold-roller
           itchChannel: web-release
           butlerApiKey: ${{ secrets.BUTLER_API_KEY }}

@@ -1,5 +1,6 @@
 package states;
 
+import haxefmod.FmodEvents.FmodEvent;
 import misc.Constants;
 import flixel.util.FlxAxes;
 import entities.games.conestack.IceCreamBall;
@@ -42,10 +43,13 @@ class ConeStackState extends FlxSubState {
 
 	var accuracyPercentage = 0.0;
 
-	public function new(returnState:TruckState, flavor:IceCreamFlavor) {
+	var correctFlavor = false;
+
+	public function new(returnState:TruckState, flavor:IceCreamFlavor, correctFlavor:Bool) {
 		super();
 
 		this.flavor = flavor;
+		this.correctFlavor = correctFlavor;
 		this.returnState = returnState;
 		bgColor = FlxColor.fromRGB(30, 30, 30, 128);
 	}
@@ -74,6 +78,7 @@ class ConeStackState extends FlxSubState {
 					rateCone();
 					FlxG.camera.shake(Constants.SHAKE_AMOUNT, 0.05, FlxAxes.X);
 					// TODO: Slap SFX
+					FmodManager.PlaySoundOneShot(FmodSFX.slap);
 				}
 			});
 			FlxTween.globalManager.update(0);
@@ -103,6 +108,7 @@ class ConeStackState extends FlxSubState {
 			dropTriggered = true;
 			iceCreamBall.fall();
 			scoop.animation.play('flip');
+			FmodManager.PlaySoundOneShot(FmodSFX.release);
 			iceCreamBall.acceleration.y = iceCreamGravity;
 		}
 
@@ -114,6 +120,7 @@ class ConeStackState extends FlxSubState {
 				accuracyPercentage = Math.abs(iceCreamBall.plop(cone));
 
 				// TODO: Slap SFX For ice cream hitting cone. Maybe different depending on how centered?
+				FmodManager.PlaySoundOneShot(FmodSFX.plop);
 				FlxG.camera.shake(Constants.SHAKE_AMOUNT, 0.05, FlxAxes.Y);
 			}
 		}
@@ -126,10 +133,9 @@ class ConeStackState extends FlxSubState {
 	function rateCone() {
 		trace("RATING PENDING");
 		Timer.delay(()-> {
-			// TODO: Play SFX
+			// TODO: Play SFX based on accuracy and correctness of flavor
 			close();
-			returnState.dismissCustomer(4, accuracyPercentage);
-			// returnState.openSubState(new ChangeSortState(returnState, 4));
+			returnState.dismissCustomer(4, accuracyPercentage * (correctFlavor ? 1 : 0.5));
 		}, 750);
 	}
 
