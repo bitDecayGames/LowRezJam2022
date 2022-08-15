@@ -5,7 +5,7 @@
 			<value>Lever</value>
 		</property>
 		<relationship name="folder">
-			<destination>{2a865dd1-c9a4-466a-a543-32ed3dbe48c9}</destination>
+			<destination>{12e5f359-2100-4a5e-b1f6-50527c97dc5c}</destination>
 		</relationship>
 	</object>
 </objects>
