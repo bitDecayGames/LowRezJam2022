@@ -7,6 +7,7 @@ package;
 
 class FmodSongs {
     public static inline var LetsGo:String = "event:/Music/LetsGo";
+    public static inline var title:String = "event:/Music/title";
 }
 
 class FmodSFX {
@@ -34,6 +35,8 @@ class FmodSFX {
     public static inline var disgust3:String = "event:/SFX/Disgust/disgust3";
     public static inline var disgust4:String = "event:/SFX/Disgust/disgust4";
     public static inline var disgust5:String = "event:/SFX/Disgust/disgust5";
+    public static inline var freezerAmbience:String = "event:/SFX/Freezer/freezerAmbience";
+    public static inline var freezerDoorShut:String = "event:/SFX/Freezer/freezerDoorShut";
     public static inline var happy:String = "event:/SFX/Happy/happy";
     public static inline var happy1:String = "event:/SFX/Happy/happy1";
     public static inline var happy2:String = "event:/SFX/Happy/happy2";
