@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.00.00">
+	<object class="AudioFile" id="{758f3ef8-e79f-40c8-b9ac-5d992937ce6f}">
+		<property name="assetPath">
+			<value>changeShuffle8.ogg</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>48</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>1.384625</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{8437bb97-ead8-45e7-929a-eda2e732a050}</destination>
+		</relationship>
+	</object>
+</objects>
