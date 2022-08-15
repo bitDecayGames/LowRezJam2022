@@ -85,7 +85,7 @@ class TruckState extends FlxTransitionableState {
 	// 0 = perfect, 1 = game over
 	var temperature = 0.0;
 
-	var backgroundTempGrowth = 1 / 40.0;
+	var backgroundTempGrowth = 1 / 60.0;
 	var baseCustomerCooling = .1;
 
 	public var coinsSinceLastRegister = 0;

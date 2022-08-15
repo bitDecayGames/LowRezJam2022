@@ -72,9 +72,9 @@ class ChangeSortState extends FlxSubState {
 
 	var configWeights:Array<Float> = [
 		35,
-		19,
-		18,
-		18,
+		23,
+		12,
+		10,
 		5,
 		5,
 	];
