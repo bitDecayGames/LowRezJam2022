@@ -39,7 +39,7 @@ class FailState extends FlxTransitionableState {
 	}
 
 	function clickMainMenu():Void {
-		FmodFlxUtilities.TransitionToState(new MainMenuState());
+		FmodFlxUtilities.TransitionToState(new CreditsState());
 	}
 
 	override public function onFocusLost() {

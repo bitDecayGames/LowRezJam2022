@@ -212,14 +212,14 @@ class TruckState extends FlxTransitionableState {
 			temperature += backgroundTempGrowth * elapsed;
 		}
 
-		if (temperature >= 1.0) {
+		if (temperature >= 1.0 && activeTicket == null) {
 			closeSubState();
 			FlxG.switchState(new ScoreState());
 		}
 
 
 		// this is some math because of how scale works
-		redMercuryLevel.y = FlxMath.lerp(thermometer.y+1, thermometer.y + 21, 1 - temperature);
+		redMercuryLevel.y = FlxMath.lerp(thermometer.y+1, thermometer.y + 21, FlxMath.bound(1 - temperature, 0 , 1));
 		// Adding +1 here to keep gaps from forming between the thermometer ball and the main shaft
 		redMercuryLevel.scale.y = thermometer.y + 21 - redMercuryLevel.y + 1;
 		redMercuryLevel.height = redMercuryLevel.scale.y;

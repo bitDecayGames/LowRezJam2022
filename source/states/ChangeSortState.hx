@@ -62,12 +62,21 @@ class ChangeSortState extends FlxSubState {
 	var coinOffset = FlxPoint.get(Math.NEGATIVE_INFINITY, Math.NEGATIVE_INFINITY);
 
 	var coinConfigurations = [
-		[5, 0, 2, 2],
 		[0, 0, 0, 3],
 		[0, 1, 2, 2],
+		[0, 2, 4, 1],
 		[0, 1, 7, 0],
-		[10, 1, 1, 2],
-		[0, 7, 4, 0],
+		[5, 0, 2, 2],
+		[5, 2, 1, 2],
+	];
+
+	var configWeights:Array<Float> = [
+		35,
+		19,
+		18,
+		18,
+		5,
+		5,
 	];
 
 
@@ -88,7 +97,7 @@ class ChangeSortState extends FlxSubState {
 		makeBin(2);
 		makeBin(3);
 
-		makeCoins(FlxG.random.getObject(coinConfigurations));
+		makeCoins(FlxG.random.getObject(coinConfigurations, configWeights));
 
 		add(new HandGrabCursor());
 	}
