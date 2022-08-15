@@ -10,6 +10,7 @@ class FmodSongs {
 }
 
 class FmodSFX {
+    public static inline var changebin:String = "event:/SFX/Change/changebin";
     public static inline var changebin1:String = "event:/SFX/Change/changebin1";
     public static inline var changebin2:String = "event:/SFX/Change/changebin2";
     public static inline var changebin3:String = "event:/SFX/Change/changebin3";
@@ -17,19 +18,23 @@ class FmodSFX {
     public static inline var changebin5:String = "event:/SFX/Change/changebin5";
     public static inline var changebin6:String = "event:/SFX/Change/changebin6";
     public static inline var changebin7:String = "event:/SFX/Change/changebin7";
+    public static inline var delight:String = "event:/SFX/Delight/delight";
     public static inline var delight1:String = "event:/SFX/Delight/delight1";
     public static inline var delight2:String = "event:/SFX/Delight/delight2";
     public static inline var delight3:String = "event:/SFX/Delight/delight3";
     public static inline var delight4:String = "event:/SFX/Delight/delight4";
     public static inline var delight5:String = "event:/SFX/Delight/delight5";
     public static inline var delight6:String = "event:/SFX/Delight/delight6";
+    public static inline var ding:String = "event:/SFX/Ding/ding";
     public static inline var ding1:String = "event:/SFX/Ding/ding1";
     public static inline var ding2:String = "event:/SFX/Ding/ding2";
+    public static inline var disgust:String = "event:/SFX/Disgust/disgust";
     public static inline var disgust1:String = "event:/SFX/Disgust/disgust1";
     public static inline var disgust2:String = "event:/SFX/Disgust/disgust2";
     public static inline var disgust3:String = "event:/SFX/Disgust/disgust3";
     public static inline var disgust4:String = "event:/SFX/Disgust/disgust4";
     public static inline var disgust5:String = "event:/SFX/Disgust/disgust5";
+    public static inline var happy:String = "event:/SFX/Happy/happy";
     public static inline var happy1:String = "event:/SFX/Happy/happy1";
     public static inline var happy2:String = "event:/SFX/Happy/happy2";
     public static inline var happy3:String = "event:/SFX/Happy/happy3";
@@ -37,18 +42,14 @@ class FmodSFX {
     public static inline var happy5:String = "event:/SFX/Happy/happy5";
     public static inline var happy6:String = "event:/SFX/Happy/happy6";
     public static inline var leverOn:String = "event:/SFX/Lever/leverOn";
-    public static inline var mediocre1:String = "event:/SFX/Mediocre/mediocre1";
-    public static inline var mediocre2:String = "event:/SFX/Mediocre/mediocre2";
-    public static inline var mediocre3:String = "event:/SFX/Mediocre/mediocre3";
-    public static inline var mediocre4:String = "event:/SFX/Mediocre/mediocre4";
-    public static inline var mediocre5:String = "event:/SFX/Mediocre/mediocre5";
-    public static inline var mediocre6:String = "event:/SFX/Mediocre/mediocre6";
     public static inline var MenuHover:String = "event:/SFX/Menu/MenuHover";
     public static inline var MenuSelect:String = "event:/SFX/Menu/MenuSelect";
+    public static inline var plop:String = "event:/SFX/Plop/plop";
     public static inline var plop1:String = "event:/SFX/Plop/plop1";
     public static inline var plop2:String = "event:/SFX/Plop/plop2";
     public static inline var plop3:String = "event:/SFX/Plop/plop3";
     public static inline var plop4:String = "event:/SFX/Plop/plop4";
+    public static inline var release:String = "event:/SFX/Release/release";
     public static inline var release1:String = "event:/SFX/Release/release1";
     public static inline var release10:String = "event:/SFX/Release/release10";
     public static inline var release2:String = "event:/SFX/Release/release2";
@@ -59,6 +60,7 @@ class FmodSFX {
     public static inline var release7:String = "event:/SFX/Release/release7";
     public static inline var release8:String = "event:/SFX/Release/release8";
     public static inline var release9:String = "event:/SFX/Release/release9";
+    public static inline var slap:String = "event:/SFX/Slap/slap";
     public static inline var slap1:String = "event:/SFX/Slap/slap1";
     public static inline var slap2:String = "event:/SFX/Slap/slap2";
     public static inline var slap3:String = "event:/SFX/Slap/slap3";
