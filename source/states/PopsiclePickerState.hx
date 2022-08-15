@@ -89,7 +89,7 @@ class PopsiclePickerState extends FlxSubState {
 				FlxG.random.float(0, FlxG.height - p.height)
 			);
 			p.enableMouseClicks(true, true);
-			p.draggable = true;
+			p.enableMouseDrag(false, true);
 			p.mouseStartDragCallback = sicleDrag;
 			p.mouseStopDragCallback = stopSicleDrag;
 			add(p);

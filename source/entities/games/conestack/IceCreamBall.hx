@@ -71,6 +71,8 @@ class IceCreamBall extends FlxSprite {
 
 		animation.add('plop', [for (i in 0...5) i], 0);
 		animation.play('plop', plopFrame);
-		return FlxMath.bound(1 - Math.abs(accuracy), 0, 1);
+
+		var helperMod = 0.2;
+		return FlxMath.bound(1 - Math.abs(accuracy) + helperMod, 0, 1);
 	}
 }

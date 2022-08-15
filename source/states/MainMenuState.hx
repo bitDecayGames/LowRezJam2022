@@ -62,8 +62,12 @@ class MainMenuState extends FlxTransitionableState {
 			trace("---------- Bitlytics Stopped ----------");
 		}
 
-		if (!transitioning && FlxG.mouse.justReleased) {
-			clickPlay();
+		if (!transitioning) {
+			if (FlxG.mouse.justReleased) {
+				clickPlay();
+			} else if (FlxG.mouse.justPressedRight) {
+				clickCredits();
+			}
 		}
 	}
 
@@ -75,14 +79,17 @@ class MainMenuState extends FlxTransitionableState {
 		// 	FlxG.switchState(new PlayState());
 		// }, FlxColor.GRAY);
 		// openSubState(swirlOut);
+		transitioning = true;
 		FmodFlxUtilities.TransitionToStateAndStopMusic(new TruckState());
 	}
 
 	function clickCredits():Void {
+		transitioning = true;
 		FmodFlxUtilities.TransitionToState(new CreditsState());
 	}
 
 	function clickAchievements():Void {
+		transitioning = true;
 		FmodFlxUtilities.TransitionToState(new AchievementsState());
 	}
 

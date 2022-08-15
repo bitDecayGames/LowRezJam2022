@@ -81,6 +81,9 @@ class TruckState extends FlxTransitionableState {
 	// 0 = perfect, 1 = game over
 	var temperature = 0.30;
 
+	var backgroundTempGrowth = 1 / 20.0;
+	var baseCustomerCooling = .1;
+
 	public var coinsSinceLastRegister = 0;
 	var moneyTicket:OrderTicket = null;
 
@@ -118,11 +121,13 @@ class TruckState extends FlxTransitionableState {
 		truck = new FlxSprite(-2, -2, AssetPaths.truck_layout_bg__png);
 		add(truck);
 
-		redMercuryLevel = new FlxSprite(56 + 3, 13 + 21);
+		var thermometerTop = 18;
+
+		redMercuryLevel = new FlxSprite(56 + 3, thermometerTop + 21);
 		redMercuryLevel.makeGraphic(3, 1, FlxColor.RED);
 		add(redMercuryLevel);
 
-		thermometer = new FlxSprite(56, 13, AssetPaths.thermometer__png);
+		thermometer = new FlxSprite(56, thermometerTop, AssetPaths.thermometer__png);
 		add(thermometer);
 
 		customerTimer = new FlxTimer();
@@ -198,6 +203,8 @@ class TruckState extends FlxTransitionableState {
 		}
 		#end
 
+		temperature += backgroundTempGrowth * elapsed;
+
 
 		// this is some math because of how scale works
 		redMercuryLevel.y = FlxMath.lerp(thermometer.y+1, thermometer.y + 21, 1 - temperature);
@@ -231,6 +238,7 @@ class TruckState extends FlxTransitionableState {
 			cust.linePosition = position;
 			if (position == 0) {
 				// TODO: Ring bell SFX
+				FmodManager.PlaySoundOneShot(FmodSFX.ding);
 				tickets.add(cust.ticket);
 				tickQueue.push(cust.ticket);
 			}
@@ -271,6 +279,7 @@ class TruckState extends FlxTransitionableState {
 			// 	openSubState(ticket.getOrderState(this));
 			// };
 			// openSubState(trans);
+			FmodManager.PlaySoundOneShot(FmodSFX.transition);
 			transitionOut(function() {
 				openSubState(ticket.getOrderState(this));
 				// transitionIn();
@@ -283,12 +292,15 @@ class TruckState extends FlxTransitionableState {
 	}
 
 	public function dismissCustomer(coinCount:Int, rating:Float) {
-		coinsSinceLastRegister += coinCount;
-		if (coinsSinceLastRegister > 0 && moneyTicket == null) {
-			var moneyJob = makeTicket(OrderType.MONEY, null);
-			moneyTicket = moneyJob;
-			tickQueue.push(moneyTicket);
-		}
+		// coinsSinceLastRegister += coinCount;
+		// if (coinsSinceLastRegister > 0 && moneyTicket == null) {
+		// 	var moneyJob = makeTicket(OrderType.MONEY, null);
+		// 	moneyTicket = moneyJob;
+		// 	tickQueue.push(moneyTicket);
+		// }
+
+		tickQueue.push(makeTicket(OrderType.MONEY, null));
+
 
 		if (activeTicket == null) {
 			return;
@@ -302,7 +314,10 @@ class TruckState extends FlxTransitionableState {
 		var cust = ticket.orderingCustomer;
 		lineCustomers[cust.lineNum].remove(cust);
 
-		add(new Reaction(cust, rating));
+		var react = new Reaction(cust, rating);
+		add(react);
+
+		FmodManager.PlaySoundOneShot(react.getRatingSFX());
 
 		var exitXCoord = cust.lineNum <= 2 ? -20 : FlxG.width;
 		if (cust.lineNum == 2 && FlxG.random.bool()) {
@@ -314,7 +329,15 @@ class TruckState extends FlxTransitionableState {
 			}
 		});
 
-		var chillEffect = new FlxSprite(ticket.orderingCustomer.getMidpoint().x, ticket.orderingCustomer.y);
+		spawnChillFX(cust, -baseCustomerCooling * rating);
+
+		if (rating > .85) {
+
+		}
+	}
+
+	function spawnChillFX(cust:Customer, tempImpact:Float) {
+		var chillEffect = new FlxSprite(cust.getMidpoint().x, cust.y);
 		chillEffect.makeGraphic(7, 7, FlxColor.CYAN);
 		chillEffect.loadGraphic(AssetPaths.sparkle__png, true, 7, 7);
 		chillEffect.animation.add("sparkle", [ for (i in 0...6) i ], 7);
@@ -323,7 +346,7 @@ class TruckState extends FlxTransitionableState {
 
 		var fxSprite = new FlxEffectSprite(chillEffect);
 		fxSprite.setPosition(chillEffect.x, chillEffect.y);
-		var trail = new FlxTrailEffect(fxSprite, 5, 0.9, 2);
+		var trail = new FlxTrailEffect(fxSprite, 5, 0.9, 5);
 		fxSprite.effects = [ trail ];
 		add(fxSprite);
 		rounders.push(fxSprite);
@@ -352,10 +375,15 @@ class TruckState extends FlxTransitionableState {
 				ease: FlxEase.sineIn,
 				onComplete: function (t) {
 					// TODO: Play cooling SFX
-					temperature = FlxMath.bound(temperature - .1, 0, 1);
+					temperature = FlxMath.bound(temperature + tempImpact, 0, 1);
 					chillEffect.setPosition(-20, 0);
 					fxSprite.setPosition(-20, 0);
 					rounders.remove(fxSprite);
+
+					Timer.delay(function() {
+						fxSprite.kill();
+						chillEffect.kill();
+					}, 1000);
 				}
 			});
 	}
